@@ -4,6 +4,7 @@ session_start([
 ]);
 // header('Access-Control-Allow-Origin: ');
 require_once "../libs/seguridad.php";
+evaluarLog();
 // erroresON();
 function erroresON() {
 error_reporting(E_ALL);
@@ -13,10 +14,10 @@ require_once "../libs/db_fc.php";
 require_once "../funciones/funciones.php";
 extract($_GET);
 switch($s) {
-  case 'auth':
-    $data =  iniciarSesion($db);
-    break;
 	case "salir":
+		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);
+		setcookie("nid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);
+	break;
 		session_destroy();
 	break;
 	default:
