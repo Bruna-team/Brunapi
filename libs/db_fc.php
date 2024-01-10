@@ -1,8 +1,8 @@
 <?php
-    $dbhost = process.env.dbhost ||'localhost';
-    $dbuser = process.env.dbuser ||'root';
-    $dbpass = process.env.dbpass ||'';
-    $dbname = process.env.dbname ||'bruna';
+    $dbhost = process.env.MYSQLHOST ||'localhost';
+    $dbuser = process.env.MYSQLUSER ||'root';
+    $dbpass = process.env.MYSQLPASSWORD ||'';
+    $dbname = process.env.MYSQL_DATABASE ||'bruna';
 
     $db = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
     $db->set_charset("utf8");
