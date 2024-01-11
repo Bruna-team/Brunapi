@@ -15,13 +15,14 @@ require_once "../funciones/funciones.php";
 extract($_GET);
 switch($s) {
 	case "salir":
+		session_destroy();
 		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);
 		setcookie("nid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);
 	break;
 		session_destroy();
 	break;
 	default:
-		echo json_encode(array("Seleccion"=>'No existe'));
+		$data = array("Seleccion"=>'No existe');
 }
 $db->close();
 echo json_encode($data);

@@ -47,6 +47,7 @@ function evaluarLog() {
     if($_GET['s'] == "auth") {
       require_once('../libs/db_fc.php');
       $r = false;
+      $e = 'Rellena los datos';
       $usuario = strip_tags($_POST['usuario']);
       $con = base64_decode(strip_tags($_POST['clave']));
       $rec= strip_tags($_POST['rec']);
@@ -116,6 +117,48 @@ function evaluarLog() {
           return;
         }
       }
+    } else if ($_GET['s'] == "register") {
+      require_once('../libs/db_fc.php');
+      $r = false;
+      $e = 'Código inválido';
+      $user = strip_tags($_POST['ced']);
+      $nom = strip_tags($_POST['nom']);
+      $ape = strip_tags($_POST['ape']);
+      $ema = strip_tags($_POST['ema']);
+      $tel = strip_tags($_POST['tel']);
+      $dir = strip_tags($_POST['dir']);
+      $car = strip_tags($_POST['car']);
+      $cod = strip_tags($_POST['cod']);
+      $con = base64_decode(strip_tags($_POST['clave']));
+
+      if ($cod) {
+        $sql = "SELECT id_person FROM personal, login ".
+        "WHERE id_person_log=id_person AND ".
+        "cla_log='$cod'";
+        $res = $db->query($sql);
+        if ($res->num_rows > 0) {
+          $sql = "INSERT INTO `personas` (`nom_per`, `ape_per`, `ced_per`, `ema_per`, `tel_per`, ".
+          "`dir_per`, `eli_per`, `fec_cre_per`, `fec_mod_per`) VALUES ('$nom', '$ape', '$user', '$ema', ".
+          "'$tel', '$dir', '1', NOW(), NOW()) ";
+          $db->query($sql);
+          $per=$db->insert_id;
+          if ($per) {
+            $sql = "INSERT INTO `personal` (`id_car_person`, `id_per_person`, `eli_person`, ".
+            "`fec_cre_person`) VALUES ('$car', '$per', '1', NOW());".
+            "INSERT INTO `login` (`id_person_log`, `cla_log`, `fec_con_log`, `eli_log`) ".
+            "VALUES ('$per', '$con', NOW(), '1');";
+            if($db->multi_query($sql)){ 
+              $r=true;
+              $e="Agregado con éxito";
+            } else {
+              $e="Error guardando personal";
+            }
+          }
+        }
+      }
+      $json = array("r"=>$r,"e"=>$e);
+      echo json_encode($json);
+      exit;
     }
     exit;
   }
