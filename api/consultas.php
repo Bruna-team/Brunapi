@@ -21,6 +21,9 @@ switch($s) {
 	case 'editarPerfil':
 		$data = editarPerfil($db,$id);
 		break;
+	case 'secciones':
+		$data = secciones($db,$id);
+		break;
 	case "salir":
 		session_destroy();
 		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);

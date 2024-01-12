@@ -43,4 +43,21 @@
       "e"=>$e
     );
   }
+
+  function secciones($db,$id) {
+    $sql = "SELECT id_ano, id_men, nom_men, num_ano, sec_ano, COUNT(id_estd) as num_est, pnom_alum, pape_alum ".
+    "FROM anos ".
+    "JOIN mencion ON id_men_ano=id_men ".
+    "LEFT JOIN estudiantes ON id_ano_estd=id_ano ".
+    "LEFT JOIN alumnos ON id_alum_estd=id_alum  ".
+    "LEFT JOIN semanero ON id_estd_sem=id_estd  ".
+    "WHERE id_men_ano=id_men AND eli_ano='1' ".
+    "GROUP BY id_ano";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
 ?>
