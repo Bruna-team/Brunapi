@@ -45,7 +45,7 @@
   }
 
   function secciones($db,$id) {
-    $sql = "SELECT id_ano, id_men, nom_men, num_ano, sec_ano, COUNT(id_estd) as num_est, pnom_alum, pape_alum ".
+    $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano, COUNT(id_estd) as num_est, pnom_alum, pape_alum ".
     "FROM anos ".
     "JOIN mencion ON id_men_ano=id_men ".
     "LEFT JOIN estudiantes ON id_ano_estd=id_ano ".
@@ -59,5 +59,66 @@
       $data[] = $r;
     }
     return $data;
+  }
+
+  function buscarRepresentante($db,$id) {
+    extract($_POST);
+    $sql = "SELECT * FROM representantes WHERE ced_rep='$ced'";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function agregarAlum($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (empty($idRe)) {
+      if($nomRe && $apeRe && $cedRe && $telRe && $dirRe) {
+        $sql = "INSERT INTO `representantes` (`nom_rep`, `ape_rep`, `ced_rep`, `tel_rep`, `dir_rep`, ".
+        "`tel_re_rep`, `fec_cre_rep`, `fec_mod_rep`, `eli_rep`) VALUES ('$nomRe', '$apeRe', '$cedRe', ".
+        "'$telRe', '$dirRe', '$sTelRe', NOW(), NOW(), '1')";
+        $res = $db->query($sql);
+        if ($res) {
+          $idRe = $db->insert_id;
+        } else {
+          $r = false;
+          $e = "Ocurrió un error registrando el representante: ".$db->error;
+        }
+      }
+    }
+
+    if ($r && $pnom && $pape && $fec_nac && $idRe) {
+      $sql = "INSERT INTO `alumnos` (`pnom_alum`, `snom_alum`, `pape_alum`, `sape_alum`, `fec_nac_alum`, ".
+      "`ced_alum`, `id_rep_alum`, `paren_alum`, `act_alum`, `obs_alum`, `fec_cre_alum`, `fec_mod_alum`, `eli_alum`) ".
+      "VALUES ('$pnom', '$snom', '$pape', '$sape', '$fec_nac', '$ced', '$idRe', '$paren', '1', NULL, NOW(), NOW(), '1')";
+      $res = $db->query($sql);
+
+      if ($res) {
+        $idAlum = $db->insert_id;
+        $sql = "INSERT INTO `estudiantes` (`id_alum_estd`, `id_ano_estd`, `eli_estd`, `fec_cre_estd`, ".
+        "`fec_mod_estd`) VALUES ('$idAlum', '$idAno', '1', NOW(), NOW())";
+        $res = $db->query($sql);
+        if ($res) {
+          $e = "Estudiante registrado correctamente";
+          $r = true;
+        } else {
+          $r = false;
+          $e = "Ocurrió un error  registrando el estudiante: ".$db->error;
+        }
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando el alumno: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
   }
 ?>
