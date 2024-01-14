@@ -160,11 +160,19 @@
     extract($_POST);
     $date_now = date('Y-m-d');
 
+    $datos_estd = '';
+    if (empty($estd)) {
+      $datos_estd = "AND '$date_now' BETWEEN inicio_sem AND cierre_sem ";
+    } else {
+      $datos_estd = "AND id_estd='$estd'";
+    }
+
     $sql = "SELECT id_estd, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
-    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem ".
-    "FROM estudiantes, alumnos, representantes, semanero ".
-    "WHERE id_alum_estd=id_alum AND id_rep_estd=id_rep AND id_ano_estd='$ano' AND id_estd_sem=id_estd ".
-    "AND '$date_now' BETWEEN inicio_sem AND cierre_sem AND act_alum='1' AND eli_estd='1' ".
+    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano ".
+    "FROM estudiantes, alumnos, representantes, semanero, mencion, anos ".
+    "WHERE id_alum_estd=id_alum AND id_rep_alum=id_rep AND id_ano_estd='$ano' AND id_estd_sem=id_estd ".
+    "AND id_ano_estd=id_ano AND id_men_ano=id_men AND act_alum='1' AND eli_estd='1' ".
+    $datos_estd.
     "ORDER BY ced_alum ASC";
     $res = $db->query($sql);
     $alum = array();
@@ -183,7 +191,7 @@
 
     return array(
       "alum"=>$alum,
-      "est"=>$est
+      "estd"=>$estd
     );
   }
 ?>
