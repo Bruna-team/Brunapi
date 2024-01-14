@@ -24,6 +24,9 @@ switch($s) {
 	case 'secciones':
 		$data = secciones($db,$id);
 		break;
+	case 'sesion':
+		$data = sesion($db,$id);
+		break;
 	case 'buscarRepresentante':
 		$data = buscarRepresentante($db,$id);
 		break;
