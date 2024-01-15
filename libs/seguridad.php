@@ -160,6 +160,10 @@ function evaluarLog() {
       echo json_encode($json);
       exit;
     }
+    $r= false;
+    $e= "Invalido";
+    $json = array("r"=>$r,"e"=>$e);
+    echo json_encode($json);
     exit;
   }
 }
