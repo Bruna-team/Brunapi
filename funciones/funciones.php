@@ -96,7 +96,7 @@
     if ($idRe && $pnom && $pape && $fec_nac && $idRe) {
       $sql = "INSERT INTO `alumnos` (`pnom_alum`, `snom_alum`, `pape_alum`, `sape_alum`, `fec_nac_alum`, ".
       "`ced_alum`, `id_rep_alum`, `paren_alum`, `act_alum`, `obs_alum`, `fec_cre_alum`, `fec_mod_alum`, `eli_alum`) ".
-      "VALUES ('$pnom', '$snom', '$pape', '$sape', '$fec_nac', '$ced', '$idRe', '$paren', '1', NULL, NOW(), NOW(), '1')";
+      "VALUES ('$pnom', '$snom', '$pape', '$sape', '$fec_nac', '$ced', '$idRe', '$paren', '1', '$obs', NOW(), NOW(), '1')";
       $res = $db->query($sql);
 
       if ($res) {
