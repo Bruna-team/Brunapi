@@ -49,20 +49,20 @@ function evaluarLog() {
       $r = false;
       $e = 'Rellena los datos';
       $usuario = strip_tags($_POST['usuario']);
-      $con = base64_decode(strip_tags($_POST['clave']));
+      $con = strip_tags($_POST['clave']);
       $rec= strip_tags($_POST['rec']);
 
       if ($usuario && $con) {
         $sql = "SELECT id_person, nom_car, nom_per, ape_per, cla_log FROM personal, personas, login, cargos ".
         "WHERE id_per=id_per_person AND ".
-        "id_person_log=id_person AND ".
+        "id_person_log=id_per AND ".
         "id_car_person=id_car AND ".
         "ced_per='$usuario' AND ".
         "eli_person='1'";
         $res = $db->query($sql);
         if ($res->num_rows > 0) {
           $row = $res->fetch_assoc();
-          $con2 = base64_decode($row['cla_log']);
+          $con2 = $row['cla_log'];
           if ($con == $con2) {
             $_SESSION['id'] = $row['id_person'];
             $_SESSION['cargo'] = $row['nom_cargo'];
@@ -76,7 +76,7 @@ function evaluarLog() {
               $path = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH);
               $exp = time() + (86400 * 5);
               $sql = "INSERT INTO `hashes` (`id_person_hash`,`has_hash`,`exp_hash`) ".
-              "VALUES ('$id','$hora','$exp') ";
+              "VALUES ('".$_SESSION['id']."','$hora','$exp') ";
               $res = $db->query($sql);
               setcookie("sid", $hora, $exp, $path, $domain, false, true);
               setcookie("nid", $nid, $exp, $path, $domain, false, true);
@@ -89,7 +89,7 @@ function evaluarLog() {
           }
         } else {
           $r = false;
-          $e = "Verifique sus datos.";
+          $e = "Verifique sus datos";
         }
       }
       $json = array("r"=>$r,"e"=>$e);
@@ -129,11 +129,11 @@ function evaluarLog() {
       $dir = strip_tags($_POST['dir']);
       $car = strip_tags($_POST['car']);
       $cod = strip_tags($_POST['cod']);
-      $con = base64_decode(strip_tags($_POST['clave']));
+      $con = strip_tags($_POST['clave']);
 
       if ($cod) {
         $sql = "SELECT id_person FROM personal, login ".
-        "WHERE id_person_log=id_person AND ".
+        "WHERE id_person_log=id_per AND ".
         "cla_log='$cod'";
         $res = $db->query($sql);
         if ($res->num_rows > 0) {
@@ -147,7 +147,7 @@ function evaluarLog() {
             "`fec_cre_person`) VALUES ('$car', '$per', '1', NOW());".
             "INSERT INTO `login` (`id_person_log`, `cla_log`, `fec_con_log`, `eli_log`) ".
             "VALUES ('$per', '$con', NOW(), '1');";
-            if($db->multi_query($sql)){ 
+            if($db->multi_query($sql)){
               $r=true;
               $e="Agregado con éxito";
             } else {
