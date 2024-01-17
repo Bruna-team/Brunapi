@@ -124,6 +124,73 @@
     );
   }
 
+  function editarAlum($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    $sql = "SELECT id_rep, tel_rep, tel_re_rep, dir_rep FROM representantes WHERE ced_rep='$cedRe'";
+    $res = $db->query($sql);
+    if ($res->num_rows == 0) {
+      if($nomRe && $apeRe && $cedRe && $telRe && $dirRe) {
+        $sql = "INSERT INTO `representantes` (`nom_rep`, `ape_rep`, `ced_rep`, `tel_rep`, `dir_rep`, ".
+        "`tel_re_rep`, `fec_cre_rep`, `fec_mod_rep`, `eli_rep`) VALUES ('$nomRe', '$apeRe', '$cedRe', ".
+        "'$telRe', '$dirRe', '$sTelRe', NOW(), NOW(), '1')";
+        $res = $db->query($sql);
+        if ($res) {
+          $idRe = $db->insert_id;
+        } else {
+          $r = false;
+          $e = "Ocurrió un error registrando el representante: ".$db->error;
+        }
+      }
+    } else {
+      $row = $res->fetch_assoc();
+      if ($row['tel_rep'] != $telRe || $row['tel_re_rep'] != $sTelRe || $row['dir_rep'] != $dirRe) {
+        $sql = "UPDATE `representantes` SET ".
+        "`fec_mod_rep`=NOW() ".
+        ($telRe ? ",`tel_alum`='".$telRe."' " : "").
+        ($sTelRe ? ",`tel_re_alum`='".$sTelRe."' " : "").
+        ($dirRe ? ",`dir_alum`='".$dirRe."' " : "").
+        "WHERE id_rep = '".$idRe."'";
+        $res = $db->query($sql);
+        if ($res) {
+          $e = "Representante modificada.";
+          $r = true;
+        } else {
+          $r = false;
+          $e = "Ocurrió un error guardando el cambio: ".$db->error;
+        }
+      }
+    }
+
+    $sql = "UPDATE `alumnos` SET ".
+    "`fec_mod_alum`=NOW() ".
+    ($pnom ? ",`pnom_alum`='".$pnom."' " : "").
+    ($snom ? ",`snom_alum`='".$snom."' " : "").
+    ($pape ? ",`pape_alum`='".$pape."' " : "").
+    ($sape ? ",`sape_alum`='".$sape."' " : "").
+    ($ced ? ",`ced_alum`='".$ced."' " : "").
+    ($fec_nac ? ",`fec_nac_alum`='".$fec_nac."' " : "").
+    ($paren ? ",`paren_alum`='".$paren."' " : "").
+    ($idRe ? ",`id_rep_alum`='".$idRe."' " : "").
+    ($obs ? ",`obs_alum`='".$obs."' " : "").
+    "WHERE id_alum = '".$id."'";
+    $res = $db->query($sql);
+    if ($res) {
+      $e = "Persona modificada.";
+      $r = true;
+    } else {
+      $r = false;
+      $e = "Ocurrió un error guardando el cambio: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
   function cuentaSemanero ($db,$id,$ano) {
     $r = false;
     $e = 'Ocurrió un error';
@@ -167,7 +234,7 @@
       $datos_estd = "AND id_estd='$estd'";
     }
 
-    $sql = "SELECT id_estd, id_ano, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
+    $sql = "SELECT id_estd, id_ano, id_rep, id_alum, ced_rep, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
     "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano ".
     "FROM estudiantes, alumnos, representantes, semanero, mencion, anos ".
     "WHERE id_alum_estd=id_alum AND id_rep_alum=id_rep AND id_ano_estd='$ano' AND id_estd_sem=id_estd ".
