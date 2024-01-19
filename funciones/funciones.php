@@ -305,4 +305,55 @@
       "e"=>$e
     );
   }
+
+  function editarObservacion($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    $sql = "UPDATE `observaciones` SET ".
+    ($mot ? "`id_mo_obs`='".$mot."' " : "").
+    ($fec ? ",`fec_obs`='".$fec."' " : "").
+    ($hor ? ",`hor_obs`='".$hor."' " : "").
+    ($fecFin ? ",`fec_fin_obs`='".$fecFin."' " : "").
+    ($nom ? ",`nom_obs`='".$nom."' " : "").
+    ($obs ? ",`nota_obs`='".$obs."' " : "").
+    "WHERE id_obs = '".$id."'";
+    $res = $db->query($sql);
+    if ($res) {
+      $e = "Observación modificada.";
+      $r = true;
+    } else {
+      $r = false;
+      $e = "Ocurrió un error guardando el cambio: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function eliminarObservacion($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if ($obs) {
+      $sql = "DELETE FROM `observaciones` WHERE `id_obs` = $obs";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Observación eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error  eliminando la observación: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
 ?>
