@@ -245,6 +245,15 @@
     $alum = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
       $alum[] = $r;
+      $id = $r['id_estd'];
+    }
+
+    $sql = "SELECT id_obs, fec_obs, hor_obs, fec_fin_obs, nom_obs, tipo_mo, nota_obs, id_mo_obs FROM observaciones, motivos_obs ".
+    "WHERE id_mo_obs=id_mo AND id_estd_obs='$id'";
+    $res = $db->query($sql);
+    $cal = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $cal[] = $r;
     }
 
     $sql = "SELECT id_estd, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum FROM estudiantes, alumnos ".
@@ -258,7 +267,42 @@
 
     return array(
       "alum"=>$alum,
+      "cal"=>$cal,
       "estd"=>$estd
+    );
+  }
+
+  function motivos($db,$id) {
+    $sql = "SELECT * FROM motivos_obs";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function crearObservacion($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if ($estd && $mot) {
+      $sql = "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `fec_fin_obs`, `nom_obs`, `nota_obs`, `eli_obs`) ".
+      "VALUES ('$estd', '$mot', '$fec', '$hor', '$fecFin', '$nom', '$obs', '1')";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Observación registrada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error  registrando el observación: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
     );
   }
 ?>
