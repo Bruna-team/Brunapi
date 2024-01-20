@@ -33,6 +33,21 @@ switch($s) {
 	case 'agregarAlum':
 		$data = agregarAlum($db,$id);
 		break;
+	case 'editarAlum':
+		$data = editarAlum($db,$id);
+		break;
+	case 'motivos':
+		$data = motivos($db,$id);
+		break;
+	case 'crearObservacion':
+		$data = crearObservacion($db,$id);
+		break;
+	case 'editarObservacion':
+		$data = editarObservacion($db,$id);
+		break;
+	case 'eliminarObservacion':
+		$data = eliminarObservacion($db,$id);
+		break;
 	case "salir":
 		session_destroy();
 		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);

@@ -124,6 +124,73 @@
     );
   }
 
+  function editarAlum($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    $sql = "SELECT id_rep, tel_rep, tel_re_rep, dir_rep FROM representantes WHERE ced_rep='$cedRe'";
+    $res = $db->query($sql);
+    if ($res->num_rows == 0) {
+      if($nomRe && $apeRe && $cedRe && $telRe && $dirRe) {
+        $sql = "INSERT INTO `representantes` (`nom_rep`, `ape_rep`, `ced_rep`, `tel_rep`, `dir_rep`, ".
+        "`tel_re_rep`, `fec_cre_rep`, `fec_mod_rep`, `eli_rep`) VALUES ('$nomRe', '$apeRe', '$cedRe', ".
+        "'$telRe', '$dirRe', '$sTelRe', NOW(), NOW(), '1')";
+        $res = $db->query($sql);
+        if ($res) {
+          $idRe = $db->insert_id;
+        } else {
+          $r = false;
+          $e = "Ocurrió un error registrando el representante: ".$db->error;
+        }
+      }
+    } else {
+      $row = $res->fetch_assoc();
+      if ($row['tel_rep'] != $telRe || $row['tel_re_rep'] != $sTelRe || $row['dir_rep'] != $dirRe) {
+        $sql = "UPDATE `representantes` SET ".
+        "`fec_mod_rep`=NOW() ".
+        ($telRe ? ",`tel_alum`='".$telRe."' " : "").
+        ($sTelRe ? ",`tel_re_alum`='".$sTelRe."' " : "").
+        ($dirRe ? ",`dir_alum`='".$dirRe."' " : "").
+        "WHERE id_rep = '".$idRe."'";
+        $res = $db->query($sql);
+        if ($res) {
+          $e = "Representante modificada.";
+          $r = true;
+        } else {
+          $r = false;
+          $e = "Ocurrió un error guardando el cambio: ".$db->error;
+        }
+      }
+    }
+
+    $sql = "UPDATE `alumnos` SET ".
+    "`fec_mod_alum`=NOW() ".
+    ($pnom ? ",`pnom_alum`='".$pnom."' " : "").
+    ($snom ? ",`snom_alum`='".$snom."' " : "").
+    ($pape ? ",`pape_alum`='".$pape."' " : "").
+    ($sape ? ",`sape_alum`='".$sape."' " : "").
+    ($ced ? ",`ced_alum`='".$ced."' " : "").
+    ($fec_nac ? ",`fec_nac_alum`='".$fec_nac."' " : "").
+    ($paren ? ",`paren_alum`='".$paren."' " : "").
+    ($idRe ? ",`id_rep_alum`='".$idRe."' " : "").
+    ($obs ? ",`obs_alum`='".$obs."' " : "").
+    "WHERE id_alum = '".$id."'";
+    $res = $db->query($sql);
+    if ($res) {
+      $e = "Persona modificada.";
+      $r = true;
+    } else {
+      $r = false;
+      $e = "Ocurrió un error guardando el cambio: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
   function cuentaSemanero ($db,$id,$ano) {
     $r = false;
     $e = 'Ocurrió un error';
@@ -167,7 +234,7 @@
       $datos_estd = "AND id_estd='$estd'";
     }
 
-    $sql = "SELECT id_estd, id_ano, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
+    $sql = "SELECT id_estd, id_ano, id_rep, id_alum, ced_rep, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
     "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano ".
     "FROM estudiantes, alumnos, representantes, semanero, mencion, anos ".
     "WHERE id_alum_estd=id_alum AND id_rep_alum=id_rep AND id_ano_estd='$ano' AND id_estd_sem=id_estd ".
@@ -178,6 +245,15 @@
     $alum = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
       $alum[] = $r;
+      $id = $r['id_estd'];
+    }
+
+    $sql = "SELECT id_obs, fec_obs, hor_obs, fec_fin_obs, nom_obs, tipo_mo, nota_obs, id_mo_obs FROM observaciones, motivos_obs ".
+    "WHERE id_mo_obs=id_mo AND id_estd_obs='$id'";
+    $res = $db->query($sql);
+    $cal = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $cal[] = $r;
     }
 
     $sql = "SELECT id_estd, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum FROM estudiantes, alumnos ".
@@ -191,7 +267,93 @@
 
     return array(
       "alum"=>$alum,
+      "cal"=>$cal,
       "estd"=>$estd
+    );
+  }
+
+  function motivos($db,$id) {
+    $sql = "SELECT * FROM motivos_obs";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function crearObservacion($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if ($estd && $mot) {
+      $sql = "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `fec_fin_obs`, `nom_obs`, `nota_obs`, `eli_obs`) ".
+      "VALUES ('$estd', '$mot', '$fec', '$hor', '$fecFin', '$nom', '$obs', '1')";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Observación registrada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error  registrando el observación: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function editarObservacion($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    $sql = "UPDATE `observaciones` SET ".
+    ($mot ? "`id_mo_obs`='".$mot."' " : "").
+    ($fec ? ",`fec_obs`='".$fec."' " : "").
+    ($hor ? ",`hor_obs`='".$hor."' " : "").
+    ($fecFin ? ",`fec_fin_obs`='".$fecFin."' " : "").
+    ($nom ? ",`nom_obs`='".$nom."' " : "").
+    ($obs ? ",`nota_obs`='".$obs."' " : "").
+    "WHERE id_obs = '".$id."'";
+    $res = $db->query($sql);
+    if ($res) {
+      $e = "Observación modificada.";
+      $r = true;
+    } else {
+      $r = false;
+      $e = "Ocurrió un error guardando el cambio: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function eliminarObservacion($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if ($obs) {
+      $sql = "DELETE FROM `observaciones` WHERE `id_obs` = $obs";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Observación eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error  eliminando la observación: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
     );
   }
 ?>
