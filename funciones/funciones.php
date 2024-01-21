@@ -356,4 +356,108 @@
       "e"=>$e
     );
   }
+
+  function menciones($db,$id) {
+    $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano ".
+    "FROM anos ".
+    "JOIN mencion ON id_men_ano=id_men ".
+    "WHERE eli_ano='1' ".
+    "GROUP BY id_ano";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function observaciones($db,$id) {
+    extract($_POST);
+    if (empty($fecha)) {
+      $fecha_as = " '".date('Y-m-d')."' ";
+    } else {
+      $fecha = explode(",", $fecha);
+      $fecha_as = "";
+      $coma = "";
+      foreach ($fecha as $key => $value) {
+        $fecha_as .= "$coma'$value'";
+        $coma = ",";
+      }
+    }
+    $sql = "SELECT id_obs, fec_obs, hor_obs, nota_obs, pnom_alum, snom_alum, pape_alum, sape_alum, DATE(fec_fin_obs) AS fec_fin_obs ".
+    "FROM observaciones, motivos_obs, estudiantes, alumnos, anos, mencion ".
+    "WHERE id_mo_obs=id_mo AND id_estd_obs=id_estd AND id_alum_estd=id_alum AND id_ano_estd=id_ano AND id_men_ano=id_men ".
+    "AND id_mo IN ('2','3') AND (fec_obs IN ($fecha_as) OR DATE(fec_fin_obs) IN ($fecha_as))";
+    if (!empty($sec)) {
+      $sql.= " AND id_ano='$sec'";
+    } else {
+      if (!empty($men)) {
+        $sql.= " AND id_men='$men'";
+      }
+      if (!empty($ano)) {
+        $sql.= " AND nom_ano='$ano'";
+      }
+    }
+    $sql.= " ORDER BY fec_obs";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function inasistencias($db,$id) {
+    extract($_POST);
+    if (empty($fecha)) {
+      $fecha_as = " '".date('Y-m-d')."' ";
+    } else {
+      $fecha = explode(",", $fecha);
+      $fecha_as = "";
+      $coma = "";
+      foreach ($fecha as $key => $value) {
+        $fecha_as .= "$coma'$value'";
+        $coma = ",";
+      }
+    }
+    $sql = "SELECT id_obs, fec_obs, pnom_alum, snom_alum, pape_alum, sape_alum, id_estd, ".
+    "SUM(CASE WHEN id_mo='1' THEN 1 ELSE 0 END) AS justificada, SUM(CASE WHEN id_mo='4' THEN 1 ELSE 0 END) AS inasistencia,".
+    "SUM(CASE WHEN id_mo IN ('5','6') THEN 1 ELSE 0 END) AS pases, SUM(CASE WHEN id_mo IN ('1','4') THEN 1 ELSE 0 END) AS total ".
+    "FROM observaciones, motivos_obs, estudiantes, alumnos, anos, mencion ".
+    "WHERE id_mo_obs=id_mo AND id_mo IN ('1','4','5','6') AND id_estd_obs=id_estd AND id_alum_estd=id_alum ".
+    "AND id_ano_estd=id_ano AND id_men_ano=id_men ".
+    "AND id_mo_obs=id_mo AND fec_obs IN ($fecha_as) AND id_mo IN ('1','4')";
+    if (!empty($sec)) {
+      $sql.= " AND id_ano='$sec'";
+    } else {
+      if (!empty($men)) {
+        $sql.= " AND id_men='$men'";
+      }
+      if (!empty($ano)) {
+        $sql.= " AND nom_ano='$ano'";
+      }
+    }
+    $sql.= " ORDER BY fec_obs";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function burcarEstudiante($db,$id) {
+    extract($_POST);
+    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre FROM estudiantes, alumnos WHERE id_alum_estd=id_alum ".
+    "AND (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%')";
+    if (!empty($ano)) {
+      $sql.= " AND id_ano_estd='$ano'";
+    }
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
 ?>
