@@ -448,8 +448,18 @@
 
   function burcarEstudiante($db,$id) {
     extract($_POST);
-    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre FROM estudiantes, alumnos WHERE id_alum_estd=id_alum ".
-    "AND (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%')";
+    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, num_ano, sec_ano, ced_alum, ".
+    "CONCAT(nom_rep, ' ',ape_rep) as representantes, nom_mat, CONCAT(nom_per, ' ',ape_per) as profesor ".
+    "FROM estudiantes ".
+    "JOIN alumnos ON id_alum_estd=id_alum ".
+    "JOIN anos ON id_ano=id_ano_estd ".
+    "JOIN mencion ON id_men=id_men_ano ".
+    "JOIN representantes ON id_rep=id_rep_alum ".
+    "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
+    "LEFT JOIN materias ON id_mat_jor=id_mat ".
+    "LEFT JOIN personal ON id_person=id_person_mat ".
+    "LEFT JOIN personas ON id_per=id_per_person ".
+    "WHERE (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%')";
     if (!empty($ano)) {
       $sql.= " AND id_ano_estd='$ano'";
     }
