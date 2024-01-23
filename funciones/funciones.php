@@ -470,4 +470,31 @@
     }
     return $data;
   }
+
+  function maestros($db,$id) {
+    extract($_POST);
+    $where_nom = '';
+    if (!empty($nom)) {
+      $where_nom = "AND (nom_per LIKE '%$nom%' OR ape_per LIKE '%$nom%') ";
+    }
+    $where_mat = '';
+    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, nom_mat, dia_hor, inicio_hor, fin_hor, num_ano, nom_men, sec_ano ".
+    "FROM personal ".
+    "JOIN personas ON id_per_person=id_per ".
+    "LEFT JOIN materias ON id_person_mat=id_person ".
+    "LEFT JOIN jornadas ON id_mat_jor=id_mat ".
+    "LEFT JOIN horarios ON id_hor_jor=id_hor ".
+    "LEFT JOIN anos ON id_ano_jor=id_ano ".
+    "LEFT JOIN mencion ON id_men_ano=id_men ".
+    "WHERE eli_person='1' ".
+    $where_nom.
+    $where_mat.
+    "ORDER BY nom_per, ape_per";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
 ?>
