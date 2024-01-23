@@ -2,6 +2,7 @@
 session_start([
   'cookie_lifetime' => 50400,
 ]);
+date_default_timezone_set('America/Caracas');
 // header('Access-Control-Allow-Origin: ');
 require_once "../libs/seguridad.php";
 evaluarLog();
