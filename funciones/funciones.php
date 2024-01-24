@@ -497,4 +497,20 @@
     }
     return $data;
   }
+
+  function estudiantes($db, $id) {
+    extract($_POST);
+    $sql = "SELECT id_estd, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, id_ano_estd FROM estudiantes, alumnos ".
+    "WHERE id_alum_estd=id_alum AND act_alum='1' AND eli_estd='1' ";
+    if (!empty($ano)) {
+      $sql.= "AND id_ano_estd='$ano' ";
+    }
+    $sql.= "ORDER BY ced_alum ASC";
+    $res = $db->query($sql);
+    $estd = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $estd[] = $r;
+    }
+    return $estd;
+  }
 ?>
