@@ -387,7 +387,7 @@
     $sql = "SELECT id_obs, fec_obs, hor_obs, nota_obs, pnom_alum, snom_alum, pape_alum, sape_alum, DATE(fec_fin_obs) AS fec_fin_obs ".
     "FROM observaciones, motivos_obs, estudiantes, alumnos, anos, mencion ".
     "WHERE id_mo_obs=id_mo AND id_estd_obs=id_estd AND id_alum_estd=id_alum AND id_ano_estd=id_ano AND id_men_ano=id_men ".
-    "AND id_mo IN ('2','3') AND (fec_obs IN ($fecha_as) OR DATE(fec_fin_obs) IN ($fecha_as))";
+    "AND id_mo IN ('2','3') AND (fec_obs >= '$desde' OR DATE(fec_fin_obs) >= '$desde') AND (fec_obs <= '$hasta' OR DATE(fec_fin_obs) <= '$hasta')";
     if (!empty($sec)) {
       $sql.= " AND id_ano='$sec'";
     } else {
@@ -425,8 +425,8 @@
     "SUM(CASE WHEN id_mo IN ('5','6') THEN 1 ELSE 0 END) AS pases, SUM(CASE WHEN id_mo IN ('1','4') THEN 1 ELSE 0 END) AS total ".
     "FROM observaciones, motivos_obs, estudiantes, alumnos, anos, mencion ".
     "WHERE id_mo_obs=id_mo AND id_mo IN ('1','4','5','6') AND id_estd_obs=id_estd AND id_alum_estd=id_alum ".
-    "AND id_ano_estd=id_ano AND id_men_ano=id_men ".
-    "AND id_mo_obs=id_mo AND fec_obs IN ($fecha_as) AND id_mo IN ('1','4')";
+    "AND id_ano_estd=id_ano AND id_men_ano=id_men AND id_mo_obs=id_mo ".
+    "AND (fec_obs >= '$desde' OR DATE(fec_fin_obs) >= '$desde') AND (fec_obs <= '$hasta' OR DATE(fec_fin_obs) <= '$hasta') AND id_mo IN ('1','4')";
     if (!empty($sec)) {
       $sql.= " AND id_ano='$sec'";
     } else {
