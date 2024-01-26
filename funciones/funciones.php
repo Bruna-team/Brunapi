@@ -546,6 +546,29 @@
     );
   }
 
+  function registrarPases($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($alum)) {
+      $sql = "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `fec_fin_obs`, `nom_obs`, `nota_obs`, `eli_obs`) ".
+      "VALUES ('$alum', '$pase', '$fec', '$hor', '$fec', 'Pase coordinación', '$mot', '1')";
+      $res = $db->query($sql);
+      if($res) {
+        $r = true;
+        $e = "Pase registrado.";
+      } else {
+        $r = false;
+        $e = "Error registrando el pase.".$db->error;
+      }
+    }
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
   function materiasCrear($db,$id) {
     extract($_POST);
     $r = false;
