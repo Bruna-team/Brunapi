@@ -2,6 +2,7 @@
 session_start([
   'cookie_lifetime' => 50400,
 ]);
+date_default_timezone_set('America/Caracas');
 // header('Access-Control-Allow-Origin: ');
 require_once "../libs/seguridad.php";
 evaluarLog();
@@ -13,6 +14,7 @@ ini_set('display_errors', '1');
 require_once "../libs/db_fc.php";
 require_once "../funciones/funciones.php";
 $id = $_SESSION['id'];
+$car = $_SESSION['cargo'];
 extract($_GET);
 switch($s) {
 	case 'perfil':
@@ -22,7 +24,7 @@ switch($s) {
 		$data = editarPerfil($db,$id);
 		break;
 	case 'secciones':
-		$data = secciones($db,$id);
+		$data = secciones($db,$id,$car);
 		break;
 	case 'sesion':
 		$data = sesion($db,$id);
@@ -47,6 +49,33 @@ switch($s) {
 		break;
 	case 'eliminarObservacion':
 		$data = eliminarObservacion($db,$id);
+		break;
+	case 'menciones':
+		$data = menciones($db,$id);
+		break;
+	case 'burcarEstudiante':
+		$data = burcarEstudiante($db,$id);
+		break;
+	case 'inasistencias':
+		$data = inasistencias($db,$id);
+		break;
+	case 'observaciones':
+		$data = observaciones($db,$id);
+		break;
+	case 'maestros':
+		$data = maestros($db,$id);
+		break;
+	case 'estudiantes':
+		$data = estudiantes($db,$id);
+		break;
+	case 'registrarInasistencias':
+		$data = registrarInasistencias($db,$id);
+		break;
+	case 'materiasCrear':
+		$data = materiasCrear($db,$id);
+		break;
+	case 'registrarPases':
+		$data = registrarPases($db,$id);
 		break;
 	case "salir":
 		session_destroy();

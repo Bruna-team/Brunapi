@@ -44,16 +44,22 @@
     );
   }
 
-  function secciones($db,$id) {
+  function secciones($db,$id,$car) {
     $date_now = date('Y-m-d');
     $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano, COUNT(id_estd) as num_est, pnom_alum, pape_alum ".
     "FROM anos ".
     "JOIN mencion ON id_men_ano=id_men ".
     "LEFT JOIN estudiantes ON id_ano_estd=id_ano ".
     "LEFT JOIN alumnos ON id_alum_estd=id_alum  ".
-    "LEFT JOIN semanero ON (id_estd_sem=id_estd AND '$date_now' BETWEEN inicio_sem AND cierre_sem) ".
-    "WHERE eli_ano='1' ".
-    "GROUP BY id_ano";
+    "LEFT JOIN semanero ON (id_estd_sem=id_estd AND '$date_now' BETWEEN inicio_sem AND cierre_sem) ";
+    if ($car > 2) {
+      $sql.= "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
+      "LEFT JOIN materias ON id_mat_jor=id_mat ".
+      "LEFT JOIN personal ON id_person_mat=id_person ";
+    }
+    $sql.="WHERE eli_ano='1' ";
+    if ($car > 2) {$sql.="AND id_person='$id' ";}
+    $sql.="GROUP BY id_ano";
     $res = $db->query($sql);
     $data = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
@@ -348,6 +354,235 @@
       } else {
         $r = false;
         $e = "Ocurrió un error  eliminando la observación: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function menciones($db,$id) {
+    $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano ".
+    "FROM anos ".
+    "JOIN mencion ON id_men_ano=id_men ".
+    "WHERE eli_ano='1' ".
+    "GROUP BY id_ano";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function observaciones($db,$id) {
+    extract($_POST);
+    if (empty($fecha)) {
+      $fecha_as = " '".date('Y-m-d')."' ";
+    } else {
+      $fecha = explode(",", $fecha);
+      $fecha_as = "";
+      $coma = "";
+      foreach ($fecha as $key => $value) {
+        $fecha_as .= "$coma'$value'";
+        $coma = ",";
+      }
+    }
+    $sql = "SELECT id_obs, fec_obs, hor_obs, nota_obs, pnom_alum, snom_alum, pape_alum, sape_alum, DATE(fec_fin_obs) AS fec_fin_obs ".
+    "FROM observaciones, motivos_obs, estudiantes, alumnos, anos, mencion ".
+    "WHERE id_mo_obs=id_mo AND id_estd_obs=id_estd AND id_alum_estd=id_alum AND id_ano_estd=id_ano AND id_men_ano=id_men ".
+    "AND id_mo IN ('2','3') AND (fec_obs >= '$desde' OR DATE(fec_fin_obs) >= '$desde') AND (fec_obs <= '$hasta' OR DATE(fec_fin_obs) <= '$hasta')";
+    if (!empty($sec)) {
+      $sql.= " AND id_ano='$sec'";
+    } else {
+      if (!empty($men)) {
+        $sql.= " AND id_men='$men'";
+      }
+      if (!empty($ano)) {
+        $sql.= " AND nom_ano='$ano'";
+      }
+    }
+    $sql.= " ORDER BY fec_obs";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function inasistencias($db,$id) {
+    extract($_POST);
+    if (empty($fecha)) {
+      $fecha_as = " '".date('Y-m-d')."' ";
+    } else {
+      $fecha = explode(",", $fecha);
+      $fecha_as = "";
+      $coma = "";
+      foreach ($fecha as $key => $value) {
+        $fecha_as .= "$coma'$value'";
+        $coma = ",";
+      }
+    }
+    $sql = "SELECT id_obs, fec_obs, pnom_alum, snom_alum, pape_alum, sape_alum, id_estd, ".
+    "SUM(CASE WHEN id_mo='1' THEN 1 ELSE 0 END) AS justificada, SUM(CASE WHEN id_mo='4' THEN 1 ELSE 0 END) AS inasistencia,".
+    "SUM(CASE WHEN id_mo IN ('5','6') THEN 1 ELSE 0 END) AS pases, SUM(CASE WHEN id_mo IN ('1','4') THEN 1 ELSE 0 END) AS total ".
+    "FROM observaciones, motivos_obs, estudiantes, alumnos, anos, mencion ".
+    "WHERE id_mo_obs=id_mo AND id_mo IN ('1','4','5','6') AND id_estd_obs=id_estd AND id_alum_estd=id_alum ".
+    "AND id_ano_estd=id_ano AND id_men_ano=id_men AND id_mo_obs=id_mo ".
+    "AND (fec_obs >= '$desde' OR DATE(fec_fin_obs) >= '$desde') AND (fec_obs <= '$hasta' OR DATE(fec_fin_obs) <= '$hasta') AND id_mo IN ('1','4')";
+    if (!empty($sec)) {
+      $sql.= " AND id_ano='$sec'";
+    } else {
+      if (!empty($men)) {
+        $sql.= " AND id_men='$men'";
+      }
+      if (!empty($ano)) {
+        $sql.= " AND nom_ano='$ano'";
+      }
+    }
+    $sql.= " ORDER BY fec_obs";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function burcarEstudiante($db,$id) {
+    extract($_POST);
+    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, num_ano, sec_ano, ced_alum, ".
+    "CONCAT(nom_rep, ' ',ape_rep) as representantes, nom_mat, CONCAT(nom_per, ' ',ape_per) as profesor ".
+    "FROM estudiantes ".
+    "JOIN alumnos ON id_alum_estd=id_alum ".
+    "JOIN anos ON id_ano=id_ano_estd ".
+    "JOIN mencion ON id_men=id_men_ano ".
+    "JOIN representantes ON id_rep=id_rep_alum ".
+    "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
+    "LEFT JOIN materias ON id_mat_jor=id_mat ".
+    "LEFT JOIN personal ON id_person=id_person_mat ".
+    "LEFT JOIN personas ON id_per=id_per_person ".
+    "WHERE (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%')";
+    if (!empty($ano)) {
+      $sql.= " AND id_ano_estd='$ano'";
+    }
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function maestros($db,$id) {
+    extract($_POST);
+    $where_nom = '';
+    if (!empty($nom)) {
+      $where_nom = "AND (nom_per LIKE '%$nom%' OR ape_per LIKE '%$nom%') ";
+    }
+    $where_mat = '';
+    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, nom_mat, dia_hor, inicio_hor, fin_hor, num_ano, nom_men, sec_ano ".
+    "FROM personal ".
+    "JOIN personas ON id_per_person=id_per ".
+    "LEFT JOIN materias ON id_person_mat=id_person ".
+    "LEFT JOIN jornadas ON id_mat_jor=id_mat ".
+    "LEFT JOIN horarios ON id_hor_jor=id_hor ".
+    "LEFT JOIN anos ON id_ano_jor=id_ano ".
+    "LEFT JOIN mencion ON id_men_ano=id_men ".
+    "WHERE eli_person='1' ".
+    $where_nom.
+    $where_mat.
+    "ORDER BY nom_per, ape_per";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
+  function estudiantes($db, $id) {
+    extract($_POST);
+    $sql = "SELECT id_estd, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, id_ano_estd FROM estudiantes, alumnos ".
+    "WHERE id_alum_estd=id_alum AND act_alum='1' AND eli_estd='1' ";
+    if (!empty($ano)) {
+      $sql.= "AND id_ano_estd='$ano' ";
+    }
+    $sql.= "ORDER BY ced_alum ASC";
+    $res = $db->query($sql);
+    $estd = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $estd[] = $r;
+    }
+    return $estd;
+  }
+
+  function registrarInasistencias($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($alum)) {
+      $alum = explode(",", $alum);
+      $sql = '';
+      foreach ($alum as $key => $value) {
+        $sql.= "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `fec_fin_obs`, `nom_obs`, `nota_obs`, `eli_obs`) ".
+        "VALUES ('$value', '4', '$fec', '$hor', '$fec', 'Inasistencia clase', '', '1');";
+      }
+      if($db->multi_query($sql)) {
+        $r = true;
+        $e = "Inasistencias registradas.";
+      } else {
+        $r = false;
+        $e = "Error registrando los inasistentes.".$db->error;
+      }
+    }
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function registrarPases($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($alum)) {
+      $sql = "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `fec_fin_obs`, `nom_obs`, `nota_obs`, `eli_obs`) ".
+      "VALUES ('$alum', '$pase', '$fec', '$hor', '$fec', 'Pase coordinación', '$mot', '1')";
+      $res = $db->query($sql);
+      if($res) {
+        $r = true;
+        $e = "Pase registrado.";
+      } else {
+        $r = false;
+        $e = "Error registrando el pase.".$db->error;
+      }
+    }
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function materiasCrear($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($mat)) {
+      $sql = "INSERT INTO materias (`nom_mat`, `eli_mat`) VALUES (`$mat`, `1`)";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Materia registrada";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando la materia: ".$db->error;
       }
     }
 
