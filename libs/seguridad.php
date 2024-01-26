@@ -48,12 +48,13 @@ function evaluarLog() {
       require_once('../libs/db_fc.php');
       $r = false;
       $e = 'Rellena los datos';
+      $m = '';
       $usuario = strip_tags($_POST['usuario']);
       $con = strip_tags($_POST['clave']);
       $rec= strip_tags($_POST['rec']);
 
       if ($usuario && $con) {
-        $sql = "SELECT id_person, nom_car, nom_per, ape_per, cla_log FROM personal, personas, login, cargos ".
+        $sql = "SELECT id_person, id_car, nom_per, ape_per, cla_log FROM personal, personas, login, cargos ".
         "WHERE id_per=id_per_person AND ".
         "id_person_log=id_per AND ".
         "id_car_person=id_car AND ".
@@ -65,7 +66,7 @@ function evaluarLog() {
           $con2 = $row['cla_log'];
           if ($con == $con2) {
             $_SESSION['id'] = $row['id_person'];
-            $_SESSION['cargo'] = $row['nom_cargo'];
+            $_SESSION['cargo'] = $row['id_car'];
             $_SESSION["nombre"] = $row['nom_per'];
             $_SESSION["apellido"] = $row['ape_per'];
 
@@ -81,6 +82,7 @@ function evaluarLog() {
               setcookie("sid", $hora, $exp, $path, $domain, false, true);
               setcookie("nid", $nid, $exp, $path, $domain, false, true);
             }
+            $m = $row['id_car'];
             $e = "Sesion iniciada";
             $r = true;
           } else {
@@ -92,7 +94,7 @@ function evaluarLog() {
           $e = "Verifique sus datos";
         }
       }
-      $json = array("r"=>$r,"e"=>$e);
+      $json = array("r"=>$r,"e"=>$e,"m"=>$m);
       echo json_encode($json);
       exit;
     } else if (isset($_COOKIE['sid']) && isset($_COOKIE['nid'])) {
@@ -133,7 +135,7 @@ function evaluarLog() {
 
       if ($cod) {
         $sql = "SELECT id_person FROM personal, login ".
-        "WHERE id_person_log=id_per AND ".
+        "WHERE id_person_log=id_person AND ".
         "cla_log='$cod'";
         $res = $db->query($sql);
         if ($res->num_rows > 0) {

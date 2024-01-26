@@ -14,6 +14,7 @@ ini_set('display_errors', '1');
 require_once "../libs/db_fc.php";
 require_once "../funciones/funciones.php";
 $id = $_SESSION['id'];
+$car = $_SESSION['cargo'];
 extract($_GET);
 switch($s) {
 	case 'perfil':
@@ -23,7 +24,7 @@ switch($s) {
 		$data = editarPerfil($db,$id);
 		break;
 	case 'secciones':
-		$data = secciones($db,$id);
+		$data = secciones($db,$id,$car);
 		break;
 	case 'sesion':
 		$data = sesion($db,$id);
@@ -66,6 +67,9 @@ switch($s) {
 		break;
 	case 'estudiantes':
 		$data = estudiantes($db,$id);
+		break;
+	case 'registrarInasistencias':
+		$data = registrarInasistencias($db,$id);
 		break;
 	case "salir":
 		session_destroy();

@@ -44,16 +44,22 @@
     );
   }
 
-  function secciones($db,$id) {
+  function secciones($db,$id,$car) {
     $date_now = date('Y-m-d');
     $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano, COUNT(id_estd) as num_est, pnom_alum, pape_alum ".
     "FROM anos ".
     "JOIN mencion ON id_men_ano=id_men ".
     "LEFT JOIN estudiantes ON id_ano_estd=id_ano ".
     "LEFT JOIN alumnos ON id_alum_estd=id_alum  ".
-    "LEFT JOIN semanero ON (id_estd_sem=id_estd AND '$date_now' BETWEEN inicio_sem AND cierre_sem) ".
-    "WHERE eli_ano='1' ".
-    "GROUP BY id_ano";
+    "LEFT JOIN semanero ON (id_estd_sem=id_estd AND '$date_now' BETWEEN inicio_sem AND cierre_sem) ";
+    if ($car > 2) {
+      $sql.= "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
+      "LEFT JOIN materias ON id_mat_jor=id_mat ".
+      "LEFT JOIN personal ON id_person_mat=id_person ";
+    }
+    $sql.="WHERE eli_ano='1' ";
+    if ($car > 2) {$sql.="AND id_person='$id' ";}
+    $sql.="GROUP BY id_ano";
     $res = $db->query($sql);
     $data = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
@@ -512,5 +518,31 @@
       $estd[] = $r;
     }
     return $estd;
+  }
+
+  function registrarInasistencias($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($alum)) {
+      $alum = explode(",", $alum);
+      $sql = '';
+      foreach ($alum as $key => $value) {
+        $sql.= "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `eli_obs`) ".
+        "VALUES ('$value', '4', '$fec', '$hor', '1');";
+      }
+      if($db->multi_query($sql)) {
+        $r = true;
+        $e = "Inasistencias registradas.";
+      } else {
+        $r = false;
+        $e = "Error registrando los inasistentes.".$db->error;
+      }
+    }
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
   }
 ?>
