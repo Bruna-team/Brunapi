@@ -529,8 +529,8 @@
       $alum = explode(",", $alum);
       $sql = '';
       foreach ($alum as $key => $value) {
-        $sql.= "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `eli_obs`) ".
-        "VALUES ('$value', '4', '$fec', '$hor', '1');";
+        $sql.= "INSERT INTO `observaciones` (`id_estd_obs`,`id_mo_obs`, `fec_obs`, `hor_obs`, `fec_fin_obs`, `nom_obs`, `nota_obs`, `eli_obs`) ".
+        "VALUES ('$value', '4', '$fec', '$hor', '$fec', 'Inasistencia clase', '', '1');";
       }
       if($db->multi_query($sql)) {
         $r = true;
@@ -540,6 +540,29 @@
         $e = "Error registrando los inasistentes.".$db->error;
       }
     }
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function materiasCrear($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($mat)) {
+      $sql = "INSERT INTO materias (`nom_mat`, `eli_mat`) VALUES (`$mat`, `1`)";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Materia registrada";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando la materia: ".$db->error;
+      }
+    }
+
     return array(
       "r"=>$r,
       "e"=>$e
