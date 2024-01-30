@@ -241,10 +241,17 @@
     }
 
     $sql = "SELECT id_estd, id_ano, id_rep, id_alum, ced_rep, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
-    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano ".
-    "FROM estudiantes, alumnos, representantes, semanero, mencion, anos ".
-    "WHERE id_alum_estd=id_alum AND id_rep_alum=id_rep AND id_ano_estd='$ano' AND id_estd_sem=id_estd ".
-    "AND id_ano_estd=id_ano AND id_men_ano=id_men AND act_alum='1' AND eli_estd='1' ".
+    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano, ".
+    "SUM(CASE WHEN id_mo = '5' THEN 1 ELSE 0 END) AS entrada, SUM(CASE WHEN id_mo = '6' THEN 1 ELSE 0 END) AS salida  ".
+    "FROM estudiantes ".
+    "JOIN alumnos ON id_alum_estd=id_alum ".
+    "JOIN representantes ON id_rep_alum=id_rep ".
+    "JOIN semanero ON id_estd_sem=id_estd ".
+    "JOIN anos ON id_ano_estd=id_ano ".
+    "JOIN mencion ON id_men_ano=id_men ".
+    "LEFT JOIN observaciones ON id_estd_obs=id_estd ".
+    "LEFT JOIN motivos_obs ON id_mo_obs=id_mo ".
+    "WHERE id_ano_estd='$ano' AND act_alum='1' AND eli_estd='1' ".
     $datos_estd.
     "ORDER BY ced_alum ASC";
     $res = $db->query($sql);
