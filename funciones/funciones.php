@@ -324,21 +324,23 @@
     $r = true;
     $e="Faltan datos";
 
-    $sql = "UPDATE `observaciones` SET ".
-    ($mot ? "`id_mo_obs`='".$mot."' " : "").
-    ($fec ? ",`fec_obs`='".$fec."' " : "").
-    ($hor ? ",`hor_obs`='".$hor."' " : "").
-    ($fecFin ? ",`fec_fin_obs`='".$fecFin."' " : "").
-    ($nom ? ",`nom_obs`='".$nom."' " : "").
-    ($obs ? ",`nota_obs`='".$obs."' " : "").
-    "WHERE id_obs = '".$id."'";
-    $res = $db->query($sql);
-    if ($res) {
-      $e = "Observación modificada.";
-      $r = true;
-    } else {
-      $r = false;
-      $e = "Ocurrió un error guardando el cambio: ".$db->error;
+    if (!empty($id)) {
+      $sql = "UPDATE `observaciones` SET ".
+      ($mot ? "`id_mo_obs`='".$mot."' " : "").
+      ($fec ? ",`fec_obs`='".$fec."' " : "").
+      ($hor ? ",`hor_obs`='".$hor."' " : "").
+      ($fecFin ? ",`fec_fin_obs`='".$fecFin."' " : "").
+      ($nom ? ",`nom_obs`='".$nom."' " : "").
+      ($obs ? ",`nota_obs`='".$obs."' " : "").
+      "WHERE id_obs = '".$id."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Observación modificada.";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error guardando el cambio: ".$db->error;
+      }
     }
 
     return array(
@@ -622,6 +624,87 @@
     } else {
       $r = false;
       $e = "Ocurrió un error registrando el año escolar: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function horarios($db,$id) {
+    $sql= "SELECT * from horarios WHERE eli_hor='1' ORDER BY modulo_hor ASC";
+    $res = $db->query($sql);
+    $hor = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $hor[] = $r;
+    }
+    return $hor;
+  }
+
+  function horarioCrear($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    $sql = "INSERT INTO horarios (`modulo_hor`, `inicio_hor`, `fin_hor`) VALUES ('$mod', '$ini','$fin')";
+    $res = $db->query($sql);
+    if ($res) {
+      $r = true;
+      $e = "Modulo registrado";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error registrando el modulo: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function editarHorario($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "UPDATE `horarios` SET ".
+      ($mod ? "`modulo_hor`='".$mod."' " : "").
+      ($ini ? ",`inicio_hor`='".$ini."' " : "").
+      ($fin ? ",`fin_hor`='".$fin."' " : "").
+      "WHERE id_hor = '".$id."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Modulo modificada.";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error guardando el cambio: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function horarioEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `horarios` WHERE `id_hor` = $id";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Modulo eliminado correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando el modulo: ".$db->error;
+      }
     }
 
     return array(

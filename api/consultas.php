@@ -6,7 +6,7 @@ date_default_timezone_set('America/Caracas');
 // header('Access-Control-Allow-Origin: ');
 require_once "../libs/seguridad.php";
 evaluarLog();
-erroresON();
+// erroresON();
 function erroresON() {
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -82,6 +82,18 @@ switch($s) {
 		break;
 	case 'informacion':
 		$data = informacion($db,$id);
+		break;
+	case 'horarios':
+		$data = horarios($db,$id);
+		break;
+	case 'horarioCrear':
+		$data = horarioCrear($db,$id);
+		break;
+	case 'editarHorario':
+		$data = editarHorario($db,$id);
+		break;
+	case 'horarioEliminar':
+		$data = horarioEliminar($db,$id);
 		break;
 	case "salir":
 		session_destroy();
