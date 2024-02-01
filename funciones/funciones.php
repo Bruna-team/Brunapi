@@ -598,4 +598,35 @@
       "e"=>$e
     );
   }
+
+  function informacion($db,$id) {
+    $sql= "SELECT * from informacion ORDER BY id_inf DESC LIMIT 1";
+    $res = $db->query($sql);
+    $inf = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $inf[] = $r;
+    }
+    return $inf;
+  }
+
+  function informacionGuardar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    $sql = "INSERT INTO informacion (`ano_oct_inf`, `ano_dic_inf`, `ano_ene_inf`, `ano_jul_inf`) VALUES ('$oct', '$dic','$ene','$jul')";
+    $res = $db->query($sql);
+    if ($res) {
+      $r = true;
+      $e = "Año escolar registrado";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error registrando el año escolar: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
 ?>

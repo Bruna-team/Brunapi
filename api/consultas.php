@@ -77,6 +77,12 @@ switch($s) {
 	case 'registrarPases':
 		$data = registrarPases($db,$id);
 		break;
+	case 'informacionGuardar':
+		$data = informacionGuardar($db,$id);
+		break;
+	case 'informacion':
+		$data = informacion($db,$id);
+		break;
 	case "salir":
 		session_destroy();
 		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);
