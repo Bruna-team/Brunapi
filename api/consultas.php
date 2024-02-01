@@ -95,6 +95,18 @@ switch($s) {
 	case 'horarioEliminar':
 		$data = horarioEliminar($db,$id);
 		break;
+	case 'materias':
+		$data = materias($db,$id);
+		break;
+	case 'materiasCrear':
+		$data = materiasCrear($db,$id);
+		break;
+	case 'materiaEditar':
+		$data = materiaEditar($db,$id);
+		break;
+	case 'materiaEliminar':
+		$data = materiaEliminar($db,$id);
+		break;
 	case "salir":
 		session_destroy();
 		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);

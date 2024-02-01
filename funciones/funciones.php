@@ -578,29 +578,6 @@
     );
   }
 
-  function materiasCrear($db,$id) {
-    extract($_POST);
-    $r = false;
-    $e="Faltan datos";
-
-    if (!empty($mat)) {
-      $sql = "INSERT INTO materias (`nom_mat`, `eli_mat`) VALUES (`$mat`, `1`)";
-      $res = $db->query($sql);
-      if ($res) {
-        $r = true;
-        $e = "Materia registrada";
-      } else {
-        $r = false;
-        $e = "Ocurrió un error registrando la materia: ".$db->error;
-      }
-    }
-
-    return array(
-      "r"=>$r,
-      "e"=>$e
-    );
-  }
-
   function informacion($db,$id) {
     $sql= "SELECT * from informacion ORDER BY id_inf DESC LIMIT 1";
     $res = $db->query($sql);
@@ -676,7 +653,7 @@
       "WHERE id_hor = '".$id."'";
       $res = $db->query($sql);
       if ($res) {
-        $e = "Modulo modificada.";
+        $e = "Modulo modificado.";
         $r = true;
       } else {
         $r = false;
@@ -712,4 +689,86 @@
       "e"=>$e
     );
   }
+
+  function materias($db,$id) {
+    $sql= "SELECT * from materias WHERE eli_mat='1' ORDER BY nom_mat ASC";
+    $res = $db->query($sql);
+    $mat = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $mat[] = $r;
+    }
+    return $mat;
+  }
+
+  function materiasCrear($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($mat)) {
+      $sql = "INSERT INTO materias (`nom_mat`) VALUES ('$mat')";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Materia registrada";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando la materia: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function materiaEditar($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "UPDATE `materias` SET ".
+      ($mat ? "`nom_mat`='".$mat."' " : "").
+      "WHERE id_mat = '".$id."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Materia modificada.";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error guardando el cambio: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function materiaEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `materias` WHERE `id_mat` = $id";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Materia eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando la materia: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
 ?>
