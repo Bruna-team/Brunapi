@@ -771,4 +771,54 @@
     );
   }
 
+  function mencionCrear($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $r = false;
+    $e="Faltan datos";
+    $id_men = '';
+    if (isset($data[0]->id_men)) $id_men = $data[0]->id_men;
+
+    if (!empty($data[0]->nom_men)) {
+      $sql = "INSERT INTO mencion (`nom_men`, `abre_men`) VALUES ('".$data[0]->nom_men."', '".$data[0]->abre_men."')";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Materia registrada";
+        $id_men = mysqli_insert_id($db);
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando la materia: ".$db->error;
+      }
+    }
+    return anoCrear($db, $id, $r, $e, $id_men);
+  }
+
+  function anoCrear($db,$id,$r,$e,$id_men) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    if (empty($r)) $r = false;
+    if (empty($e)) $e="Faltan datos";
+
+    if (!empty($id_men)) {
+      foreach ($data[0]->ano as $key => $ano) {
+        foreach ($ano->sec as $key => $sec) {
+          $sqlm.= "INSERT INTO anos (`nom_ano`, `num_ano`, `sec_ano`, `id_men_ano`) VALUES ('$ano->nom_ano', '$ano->num_ano', '$sec->sec_nom', '$id_men');";
+        }
+      }
+      if ($db->multi_query($sqlm)) {
+        $r = true;
+        $e = "Año registrado";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
 ?>
