@@ -821,4 +821,73 @@
       "e"=>$e
     );
   }
+
+  function seccionEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `anos` WHERE `id_ano` = $id";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Sección eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando la sección: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function anoEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `anos` WHERE `nom_ano` = '$id' AND `id_men_ano`='$men'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Año eliminado correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function mencionEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `mencion` WHERE `id_men`='$id';";
+      $sql.= "DELETE FROM `anos` WHERE `id_men_ano`='$id'";
+      if ($db->multi_query($sql)) {
+        $e = "Mención eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
 ?>

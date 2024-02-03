@@ -110,6 +110,15 @@ switch($s) {
 	case 'mencionCrear':
 		$data = mencionCrear($db,$id);
 		break;
+	case 'seccionEliminar':
+		$data = seccionEliminar($db,$id);
+		break;
+	case 'anoEliminar':
+		$data = anoEliminar($db,$id);
+		break;
+	case 'mencionEliminar':
+		$data = mencionEliminar($db,$id);
+		break;
 	case "salir":
 		session_destroy();
 		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);
