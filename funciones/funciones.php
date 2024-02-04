@@ -493,7 +493,7 @@
       $where_nom = "AND (nom_per LIKE '%$nom%' OR ape_per LIKE '%$nom%') ";
     }
     $where_mat = '';
-    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, nom_mat, dia_hor, inicio_hor, fin_hor, num_ano, nom_men, sec_ano ".
+    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, nom_mat, modulo_hor, inicio_hor, fin_hor, num_ano, nom_men, sec_ano ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".
     "LEFT JOIN materias ON id_person_mat=id_person ".

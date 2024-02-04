@@ -6,7 +6,7 @@ date_default_timezone_set('America/Caracas');
 // header('Access-Control-Allow-Origin: ');
 require_once "../libs/seguridad.php";
 evaluarLog();
-// erroresON();
+erroresON();
 function erroresON() {
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
