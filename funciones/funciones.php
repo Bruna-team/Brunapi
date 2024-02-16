@@ -493,11 +493,21 @@
       $where_nom = "AND (nom_per LIKE '%$nom%' OR ape_per LIKE '%$nom%') ";
     }
     $where_mat = '';
+    if (!empty($mat)) {
+      $mat = explode(",", $mat);
+      $mat_as = "";
+      $coma = "";
+      foreach ($mat as $key => $value) {
+        $mat_as.= "$coma'$value'";
+        $coma = ",";
+      }
+      $where_mat.= " AND id_mat IN ($mat_as) ";
+    }
     $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, nom_mat, modulo_hor, inicio_hor, fin_hor, num_ano, nom_men, sec_ano ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".
-    "LEFT JOIN materias ON id_person_mat=id_person ".
-    "LEFT JOIN jornadas ON id_mat_jor=id_mat ".
+    "LEFT JOIN jornadas ON id_per_jor=id_per ".
+    "LEFT JOIN materias ON id_mat=id_mat_jor ".
     "LEFT JOIN horarios ON id_hor_jor=id_hor ".
     "LEFT JOIN anos ON id_ano_jor=id_ano ".
     "LEFT JOIN mencion ON id_men_ano=id_men ".
@@ -883,6 +893,31 @@
         $r = false;
         $e = "Ocurrió un error eliminando el año: ".$db->error;
       }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function jornadaCrear($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    $r = false;
+    $e="Faltan datos";
+
+    foreach ($data as $key => $j) {
+      $sqlm.="INSERT INTO `jornadas` (`dia_jor`, `id_hor_jor`, `id_mat_jor`, `id_ano_jor`, `id_per_jor`) ".
+      "VALUES ('$j->dia', '$j->hor', '$j->mat', '$j->ano', '$j->id');";
+    }
+    if ($db->multi_query($sqlm)) {
+      $r = true;
+      $e = "Jornada registrads";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error registrando la jornada: ".$db->error;
     }
 
     return array(
