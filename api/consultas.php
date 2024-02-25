@@ -110,6 +110,9 @@ switch($s) {
 	case 'mencionCrear':
 		$data = mencionCrear($db,$id);
 		break;
+	case 'mencionEditar':
+		$data = mencionEditar($db,$id);
+		break;
 	case 'seccionEliminar':
 		$data = seccionEliminar($db,$id);
 		break;

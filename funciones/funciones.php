@@ -794,11 +794,11 @@
       $res = $db->query($sql);
       if ($res) {
         $r = true;
-        $e = "Materia registrada";
+        $e = "Mención registrada";
         $id_men = mysqli_insert_id($db);
       } else {
         $r = false;
-        $e = "Ocurrió un error registrando la materia: ".$db->error;
+        $e = "Ocurrió un error registrando la mención: ".$db->error;
       }
     }
     return anoCrear($db, $id, $r, $e, $id_men);
@@ -823,6 +823,57 @@
       } else {
         $r = false;
         $e = "Ocurrió un error registrando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function mencionEditar($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($data[0]->id_men)) {
+      $sql = "UPDATE `mencion` SET nom_men='".$data[0]->nom_men."', abre_men='".$data[0]->abre_men."' ".
+      "WHERE id_men='".$data[0]->id_men."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Mención modificada";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error modificando la mención: ".$db->error;
+      }
+    }
+    return anoEditar($db, $id, $r, $e);
+  }
+
+  function anoEditar($db,$id,$r,$e) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    if (empty($r)) $r = false;
+    if (empty($e)) $e="Faltan datos";
+
+    if (!empty($data[0]->id_men)) {
+      foreach ($data as $key => $ano) {
+        $sqlm.= "UPDATE `anos` SET ".
+        "nom_ano='$ano->nom_ano', ".
+        "num_ano='$ano->num_ano', ".
+        "sec_ano='$ano->sec_ano' ".
+        "WHERE id_ano='$ano->id_ano';";
+      }
+      if ($db->multi_query($sqlm)) {
+        $r = true;
+        $e = "Año modificado";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error modificando el año: ".$db->error;
       }
     }
 
