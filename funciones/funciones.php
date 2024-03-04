@@ -377,7 +377,8 @@
     "FROM anos ".
     "JOIN mencion ON id_men_ano=id_men ".
     "WHERE eli_ano='1' ".
-    "GROUP BY id_ano";
+    "GROUP BY id_ano".
+    "ORDER BY nom_men, num_ano, sec_ano";
     $res = $db->query($sql);
     $data = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
@@ -503,7 +504,8 @@
       }
       $where_mat.= " AND id_mat IN ($mat_as) ";
     }
-    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, nom_mat, modulo_hor, inicio_hor, fin_hor, num_ano, nom_men, sec_ano ".
+    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, id_jor, dia_jor, nom_mat, modulo_hor, inicio_hor, ".
+    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".
     "LEFT JOIN jornadas ON id_per_jor=id_per ".
@@ -942,7 +944,7 @@
         $r = true;
       } else {
         $r = false;
-        $e = "Ocurrió un error eliminando el año: ".$db->error;
+        $e = "Ocurrió un error eliminando la mención: ".$db->error;
       }
     }
 
@@ -969,6 +971,28 @@
     } else {
       $r = false;
       $e = "Ocurrió un error registrando la jornada: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function jornadaEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `jornadas` WHERE `id_jor`='$id';";
+      if ($db->multi_query($sql)) {
+        $e = "Jornada eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando la jornada: ".$db->error;
+      }
     }
 
     return array(

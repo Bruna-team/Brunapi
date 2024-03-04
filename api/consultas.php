@@ -125,6 +125,9 @@ switch($s) {
 	case 'jornadaCrear':
 		$data = jornadaCrear($db,$id);
 		break;
+	case 'jornadaEliminar':
+		$data = jornadaEliminar($db,$id);
+		break;
 	case "salir":
 		session_destroy();
 		setcookie("sid", "", time() - 3600,parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH),parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST),false,true);
