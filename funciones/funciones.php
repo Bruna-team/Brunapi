@@ -505,7 +505,7 @@
       $where_mat.= " AND id_mat IN ($mat_as) ";
     }
     $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, id_jor, dia_jor, nom_mat, modulo_hor, inicio_hor, ".
-    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano ".
+    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano, id_ano, id_mat, id_hor ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".
     "LEFT JOIN jornadas ON id_per_jor=id_per ".
@@ -993,6 +993,35 @@
         $r = false;
         $e = "Ocurrió un error eliminando la jornada: ".$db->error;
       }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function jornadaEditar($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    $r = false;
+    $e="Faltan datos";
+
+    foreach ($data as $key => $value) {
+      $sqlm.= "UPDATE `jornadas` SET ".
+      "dia_jor='$value->dia', ".
+      "id_hor_jor='$value->hor', ".
+      "id_mat_jor='$value->mat', ".
+      "id_ano_jor='$value->ano' ".
+      "WHERE id_jor='$value->jor';";
+    }
+    if ($db->multi_query($sqlm)) {
+      $r = true;
+      $e = "Jornada modificada";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error modificando la jornada: ".$db->error;
     }
 
     return array(
