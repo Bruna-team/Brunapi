@@ -1,4 +1,14 @@
 <?php
+  function cargos($db, $id) {
+    $sql = "SELECT * FROM `cargos` WHERE nom_car!='Root'";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
   function perfil($db, $id) {
     $sql = "SELECT id_person, nom_per, ape_per, ced_per, ema_per, dir_per, tel_per, nom_car ".
     "FROM personas, personal, cargos WHERE id_per_person=id_per AND id_car_person=id_car AND ".
@@ -241,10 +251,17 @@
     }
 
     $sql = "SELECT id_estd, id_ano, id_rep, id_alum, ced_rep, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
-    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano ".
-    "FROM estudiantes, alumnos, representantes, semanero, mencion, anos ".
-    "WHERE id_alum_estd=id_alum AND id_rep_alum=id_rep AND id_ano_estd='$ano' AND id_estd_sem=id_estd ".
-    "AND id_ano_estd=id_ano AND id_men_ano=id_men AND act_alum='1' AND eli_estd='1' ".
+    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano, ".
+    "SUM(CASE WHEN id_mo = '5' THEN 1 ELSE 0 END) AS entrada, SUM(CASE WHEN id_mo = '6' THEN 1 ELSE 0 END) AS salida  ".
+    "FROM estudiantes ".
+    "JOIN alumnos ON id_alum_estd=id_alum ".
+    "JOIN representantes ON id_rep_alum=id_rep ".
+    "JOIN semanero ON id_estd_sem=id_estd ".
+    "JOIN anos ON id_ano_estd=id_ano ".
+    "JOIN mencion ON id_men_ano=id_men ".
+    "LEFT JOIN observaciones ON id_estd_obs=id_estd ".
+    "LEFT JOIN motivos_obs ON id_mo_obs=id_mo ".
+    "WHERE id_ano_estd='$ano' AND act_alum='1' AND eli_estd='1' ".
     $datos_estd.
     "ORDER BY ced_alum ASC";
     $res = $db->query($sql);
@@ -317,21 +334,23 @@
     $r = true;
     $e="Faltan datos";
 
-    $sql = "UPDATE `observaciones` SET ".
-    ($mot ? "`id_mo_obs`='".$mot."' " : "").
-    ($fec ? ",`fec_obs`='".$fec."' " : "").
-    ($hor ? ",`hor_obs`='".$hor."' " : "").
-    ($fecFin ? ",`fec_fin_obs`='".$fecFin."' " : "").
-    ($nom ? ",`nom_obs`='".$nom."' " : "").
-    ($obs ? ",`nota_obs`='".$obs."' " : "").
-    "WHERE id_obs = '".$id."'";
-    $res = $db->query($sql);
-    if ($res) {
-      $e = "Observación modificada.";
-      $r = true;
-    } else {
-      $r = false;
-      $e = "Ocurrió un error guardando el cambio: ".$db->error;
+    if (!empty($id)) {
+      $sql = "UPDATE `observaciones` SET ".
+      ($mot ? "`id_mo_obs`='".$mot."' " : "").
+      ($fec ? ",`fec_obs`='".$fec."' " : "").
+      ($hor ? ",`hor_obs`='".$hor."' " : "").
+      ($fecFin ? ",`fec_fin_obs`='".$fecFin."' " : "").
+      ($nom ? ",`nom_obs`='".$nom."' " : "").
+      ($obs ? ",`nota_obs`='".$obs."' " : "").
+      "WHERE id_obs = '".$id."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Observación modificada.";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error guardando el cambio: ".$db->error;
+      }
     }
 
     return array(
@@ -368,7 +387,8 @@
     "FROM anos ".
     "JOIN mencion ON id_men_ano=id_men ".
     "WHERE eli_ano='1' ".
-    "GROUP BY id_ano";
+    "GROUP BY id_ano ".
+    "ORDER BY nom_men, num_ano";
     $res = $db->query($sql);
     $data = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
@@ -454,18 +474,38 @@
 
   function burcarEstudiante($db,$id) {
     extract($_POST);
-    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, num_ano, sec_ano, ced_alum, ".
+    $day = date("l");
+    $d = "";
+    switch ($day) {
+      case "Monday":
+        $d = "Lunes";
+      break;
+      case "Tuesday":
+        $d = "Martes";
+      break;
+      case "Wednesday":
+        $d = "Miércoles";
+      break;
+      case "Thursday":
+        $d = "Jueves";
+      break;
+      case "Friday":
+        $d = "Viernes";
+      break;
+    }
+    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, num_ano, sec_ano, ced_alum, modulo_hor, ".
     "CONCAT(nom_rep, ' ',ape_rep) as representantes, nom_mat, CONCAT(nom_per, ' ',ape_per) as profesor ".
     "FROM estudiantes ".
     "JOIN alumnos ON id_alum_estd=id_alum ".
     "JOIN anos ON id_ano=id_ano_estd ".
     "JOIN mencion ON id_men=id_men_ano ".
     "JOIN representantes ON id_rep=id_rep_alum ".
-    "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
+    "LEFT JOIN jornadas ON (id_ano_jor=id_ano AND dia_jor='$d') ".
+    "LEFT JOIN horarios ON (id_hor_jor=id_hor AND '$hor' BETWEEN inicio_hor AND fin_hor) ".
     "LEFT JOIN materias ON id_mat_jor=id_mat ".
-    "LEFT JOIN personal ON id_person=id_person_mat ".
+    "LEFT JOIN personal ON id_person=id_per_jor ".
     "LEFT JOIN personas ON id_per=id_per_person ".
-    "WHERE (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%')";
+    "WHERE (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%') ";
     if (!empty($ano)) {
       $sql.= " AND id_ano_estd='$ano'";
     }
@@ -484,11 +524,24 @@
       $where_nom = "AND (nom_per LIKE '%$nom%' OR ape_per LIKE '%$nom%') ";
     }
     $where_mat = '';
-    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, nom_mat, dia_hor, inicio_hor, fin_hor, num_ano, nom_men, sec_ano ".
+    if (!empty($mat)) {
+      $mat = explode(",", $mat);
+      $mat_as = "";
+      $coma = "";
+      foreach ($mat as $key => $value) {
+        $mat_as.= "$coma'$value'";
+        $coma = ",";
+      }
+      $where_mat.= " AND id_mat IN ($mat_as) ";
+    }
+    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, id_jor, dia_jor, nom_mat, modulo_hor, inicio_hor, ".
+    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano, id_ano, id_mat, id_hor, nom_car, id_car, id_ano_guia ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".
-    "LEFT JOIN materias ON id_person_mat=id_person ".
-    "LEFT JOIN jornadas ON id_mat_jor=id_mat ".
+    "JOIN cargos ON id_car=id_car_person ".
+    "LEFT JOIN prof_guia ON id_person_guia=id_person ".
+    "LEFT JOIN jornadas ON id_per_jor=id_person ".
+    "LEFT JOIN materias ON id_mat=id_mat_jor ".
     "LEFT JOIN horarios ON id_hor_jor=id_hor ".
     "LEFT JOIN anos ON id_ano_jor=id_ano ".
     "LEFT JOIN mencion ON id_men_ano=id_men ".
@@ -569,13 +622,135 @@
     );
   }
 
+  function informacion($db,$id) {
+    $sql= "SELECT * from informacion ORDER BY id_inf DESC LIMIT 1";
+    $res = $db->query($sql);
+    $inf = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $inf[] = $r;
+    }
+    return $inf;
+  }
+
+  function informacionGuardar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    $sql = "INSERT INTO informacion (`ano_oct_inf`, `ano_dic_inf`, `ano_ene_inf`, `ano_jul_inf`) VALUES ('$oct', '$dic','$ene','$jul')";
+    $res = $db->query($sql);
+    if ($res) {
+      $r = true;
+      $e = "Año escolar registrado";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error registrando el año escolar: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function horarios($db,$id) {
+    $sql= "SELECT * from horarios WHERE eli_hor='1' ORDER BY modulo_hor ASC";
+    $res = $db->query($sql);
+    $hor = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $hor[] = $r;
+    }
+    return $hor;
+  }
+
+  function horarioCrear($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    $sql = "INSERT INTO horarios (`modulo_hor`, `inicio_hor`, `fin_hor`) VALUES ('$mod', '$ini','$fin')";
+    $res = $db->query($sql);
+    if ($res) {
+      $r = true;
+      $e = "Modulo registrado";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error registrando el modulo: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function editarHorario($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "UPDATE `horarios` SET ".
+      ($mod ? "`modulo_hor`='".$mod."' " : "").
+      ($ini ? ",`inicio_hor`='".$ini."' " : "").
+      ($fin ? ",`fin_hor`='".$fin."' " : "").
+      "WHERE id_hor = '".$id."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Modulo modificado.";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error guardando el cambio: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function horarioEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `horarios` WHERE `id_hor` = $id";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Modulo eliminado correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando el modulo: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function materias($db,$id) {
+    $sql= "SELECT * from materias WHERE eli_mat='1' ORDER BY nom_mat ASC";
+    $res = $db->query($sql);
+    $mat = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $mat[] = $r;
+    }
+    return $mat;
+  }
+
   function materiasCrear($db,$id) {
     extract($_POST);
     $r = false;
     $e="Faltan datos";
 
     if (!empty($mat)) {
-      $sql = "INSERT INTO materias (`nom_mat`, `eli_mat`) VALUES (`$mat`, `1`)";
+      $sql = "INSERT INTO materias (`nom_mat`) VALUES ('$mat')";
       $res = $db->query($sql);
       if ($res) {
         $r = true;
@@ -584,6 +759,301 @@
         $r = false;
         $e = "Ocurrió un error registrando la materia: ".$db->error;
       }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function materiaEditar($db,$id) {
+    extract($_POST);
+    $r = true;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "UPDATE `materias` SET ".
+      ($mat ? "`nom_mat`='".$mat."' " : "").
+      "WHERE id_mat = '".$id."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Materia modificada.";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error guardando el cambio: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function materiaEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `materias` WHERE `id_mat` = $id";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Materia eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando la materia: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function mencionCrear($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $r = false;
+    $e="Faltan datos";
+    $id_men = '';
+    if (isset($data[0]->id_men)) $id_men = $data[0]->id_men;
+
+    if (!empty($data[0]->nom_men)) {
+      $sql = "INSERT INTO mencion (`nom_men`, `abre_men`) VALUES ('".$data[0]->nom_men."', '".$data[0]->abre_men."')";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Mención registrada";
+        $id_men = mysqli_insert_id($db);
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando la mención: ".$db->error;
+      }
+    }
+    return anoCrear($db, $id, $r, $e, $id_men);
+  }
+
+  function anoCrear($db,$id,$r,$e,$id_men) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    if (empty($r)) $r = false;
+    if (empty($e)) $e="Faltan datos";
+
+    if (!empty($id_men)) {
+      foreach ($data[0]->ano as $key => $ano) {
+        foreach ($ano->sec as $key => $sec) {
+          $sqlm.= "INSERT INTO anos (`nom_ano`, `num_ano`, `sec_ano`, `id_men_ano`) VALUES ('$ano->nom_ano', '$ano->num_ano', '$sec->sec_nom', '$id_men');";
+        }
+      }
+      if ($db->multi_query($sqlm)) {
+        $r = true;
+        $e = "Año registrado";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function mencionEditar($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($data[0]->id_men)) {
+      $sql = "UPDATE `mencion` SET nom_men='".$data[0]->nom_men."', abre_men='".$data[0]->abre_men."' ".
+      "WHERE id_men='".$data[0]->id_men."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Mención modificada";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error modificando la mención: ".$db->error;
+      }
+    }
+    return anoEditar($db, $id, $r, $e);
+  }
+
+  function anoEditar($db,$id,$r,$e) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    if (empty($r)) $r = false;
+    if (empty($e)) $e="Faltan datos";
+
+    if (!empty($data[0]->id_men)) {
+      foreach ($data as $key => $ano) {
+        $sqlm.= "UPDATE `anos` SET ".
+        "nom_ano='$ano->nom_ano', ".
+        "num_ano='$ano->num_ano', ".
+        "sec_ano='$ano->sec_ano' ".
+        "WHERE id_ano='$ano->id_ano';";
+      }
+      if ($db->multi_query($sqlm)) {
+        $r = true;
+        $e = "Año modificado";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error modificando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function seccionEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `anos` WHERE `id_ano` = $id";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Sección eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando la sección: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function anoEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `anos` WHERE `nom_ano` = '$id' AND `id_men_ano`='$men'";
+      $res = $db->query($sql);
+      if ($res) {
+        $e = "Año eliminado correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function mencionEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `mencion` WHERE `id_men`='$id';";
+      $sql.= "DELETE FROM `anos` WHERE `id_men_ano`='$id'";
+      if ($db->multi_query($sql)) {
+        $e = "Mención eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando la mención: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function jornadaCrear($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    $r = false;
+    $e="Faltan datos";
+
+    foreach ($data as $key => $j) {
+      $sqlm.="INSERT INTO `jornadas` (`dia_jor`, `id_hor_jor`, `id_mat_jor`, `id_ano_jor`, `id_per_jor`) ".
+      "VALUES ('$j->dia', '$j->hor', '$j->mat', '$j->ano', '$j->id');";
+    }
+    if ($db->multi_query($sqlm)) {
+      $r = true;
+      $e = "Jornada registrads";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error registrando la jornada: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function jornadaEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($id)) {
+      $sql = "DELETE FROM `jornadas` WHERE `id_jor`='$id';";
+      if ($db->multi_query($sql)) {
+        $e = "Jornada eliminada correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error eliminando la jornada: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function jornadaEditar($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    $r = false;
+    $e="Faltan datos";
+
+    foreach ($data as $key => $value) {
+      $sqlm.= "UPDATE `jornadas` SET ".
+      "dia_jor='$value->dia', ".
+      "id_hor_jor='$value->hor', ".
+      "id_mat_jor='$value->mat', ".
+      "id_ano_jor='$value->ano' ".
+      "WHERE id_jor='$value->jor';";
+    }
+    if ($db->multi_query($sqlm)) {
+      $r = true;
+      $e = "Jornada modificada";
+    } else {
+      $r = false;
+      $e = "Ocurrió un error modificando la jornada: ".$db->error;
     }
 
     return array(

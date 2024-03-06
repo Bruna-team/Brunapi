@@ -17,6 +17,9 @@ $id = $_SESSION['id'];
 $car = $_SESSION['cargo'];
 extract($_GET);
 switch($s) {
+	case 'cargos':
+		$data = cargos($db,$id);
+		break;
 	case 'perfil':
 		$data = perfil($db,$id);
 		break;
@@ -76,6 +79,60 @@ switch($s) {
 		break;
 	case 'registrarPases':
 		$data = registrarPases($db,$id);
+		break;
+	case 'informacionGuardar':
+		$data = informacionGuardar($db,$id);
+		break;
+	case 'informacion':
+		$data = informacion($db,$id);
+		break;
+	case 'horarios':
+		$data = horarios($db,$id);
+		break;
+	case 'horarioCrear':
+		$data = horarioCrear($db,$id);
+		break;
+	case 'editarHorario':
+		$data = editarHorario($db,$id);
+		break;
+	case 'horarioEliminar':
+		$data = horarioEliminar($db,$id);
+		break;
+	case 'materias':
+		$data = materias($db,$id);
+		break;
+	case 'materiasCrear':
+		$data = materiasCrear($db,$id);
+		break;
+	case 'materiaEditar':
+		$data = materiaEditar($db,$id);
+		break;
+	case 'materiaEliminar':
+		$data = materiaEliminar($db,$id);
+		break;
+	case 'mencionCrear':
+		$data = mencionCrear($db,$id);
+		break;
+	case 'mencionEditar':
+		$data = mencionEditar($db,$id);
+		break;
+	case 'seccionEliminar':
+		$data = seccionEliminar($db,$id);
+		break;
+	case 'anoEliminar':
+		$data = anoEliminar($db,$id);
+		break;
+	case 'mencionEliminar':
+		$data = mencionEliminar($db,$id);
+		break;
+	case 'jornadaCrear':
+		$data = jornadaCrear($db,$id);
+		break;
+	case 'jornadaEliminar':
+		$data = jornadaEliminar($db,$id);
+		break;
+	case 'jornadaEditar':
+		$data = jornadaEditar($db,$id);
 		break;
 	case "salir":
 		session_destroy();
