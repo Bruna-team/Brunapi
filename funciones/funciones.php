@@ -474,18 +474,38 @@
 
   function burcarEstudiante($db,$id) {
     extract($_POST);
-    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, num_ano, sec_ano, ced_alum, ".
+    $day = date("l");
+    $d = "";
+    switch ($day) {
+      case "Monday":
+        $d = "Lunes";
+      break;
+      case "Tuesday":
+        $d = "Martes";
+      break;
+      case "Wednesday":
+        $d = "Miércoles";
+      break;
+      case "Thursday":
+        $d = "Jueves";
+      break;
+      case "Friday":
+        $d = "Viernes";
+      break;
+    }
+    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, num_ano, sec_ano, ced_alum, modulo_hor, ".
     "CONCAT(nom_rep, ' ',ape_rep) as representantes, nom_mat, CONCAT(nom_per, ' ',ape_per) as profesor ".
     "FROM estudiantes ".
     "JOIN alumnos ON id_alum_estd=id_alum ".
     "JOIN anos ON id_ano=id_ano_estd ".
     "JOIN mencion ON id_men=id_men_ano ".
     "JOIN representantes ON id_rep=id_rep_alum ".
-    "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
+    "LEFT JOIN jornadas ON (id_ano_jor=id_ano AND dia_jor='$d') ".
+    "LEFT JOIN horarios ON (id_hor_jor=id_hor AND '$hor' BETWEEN inicio_hor AND fin_hor) ".
     "LEFT JOIN materias ON id_mat_jor=id_mat ".
-    "LEFT JOIN personal ON id_person=id_person_mat ".
+    "LEFT JOIN personal ON id_person=id_per_jor ".
     "LEFT JOIN personas ON id_per=id_per_person ".
-    "WHERE (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%')";
+    "WHERE (pnom_alum LIKE '%$nom%' OR pape_alum LIKE '%$nom%') ";
     if (!empty($ano)) {
       $sql.= " AND id_ano_estd='$ano'";
     }
@@ -515,11 +535,12 @@
       $where_mat.= " AND id_mat IN ($mat_as) ";
     }
     $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, id_jor, dia_jor, nom_mat, modulo_hor, inicio_hor, ".
-    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano, id_ano, id_mat, id_hor, nom_car, id_car ".
+    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano, id_ano, id_mat, id_hor, nom_car, id_car, id_ano_guia ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".
     "JOIN cargos ON id_car=id_car_person ".
-    "LEFT JOIN jornadas ON id_per_jor=id_per ".
+    "LEFT JOIN prof_guia ON id_person_guia=id_person ".
+    "LEFT JOIN jornadas ON id_per_jor=id_person ".
     "LEFT JOIN materias ON id_mat=id_mat_jor ".
     "LEFT JOIN horarios ON id_hor_jor=id_hor ".
     "LEFT JOIN anos ON id_ano_jor=id_ano ".
