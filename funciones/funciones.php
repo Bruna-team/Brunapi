@@ -389,7 +389,6 @@
     "WHERE eli_ano='1' ".
     "GROUP BY id_ano ".
     "ORDER BY nom_men, num_ano";
-    echo $sql;
     $res = $db->query($sql);
     $data = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
