@@ -1,4 +1,14 @@
 <?php
+  function cargos($db, $id) {
+    $sql = "SELECT * FROM `cargos` WHERE nom_car!='Root'";
+    $res = $db->query($sql);
+    $data = array();
+    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+      $data[] = $r;
+    }
+    return $data;
+  }
+
   function perfil($db, $id) {
     $sql = "SELECT id_person, nom_per, ape_per, ced_per, ema_per, dir_per, tel_per, nom_car ".
     "FROM personas, personal, cargos WHERE id_per_person=id_per AND id_car_person=id_car AND ".
@@ -377,8 +387,9 @@
     "FROM anos ".
     "JOIN mencion ON id_men_ano=id_men ".
     "WHERE eli_ano='1' ".
-    "GROUP BY id_ano".
-    "ORDER BY nom_men, num_ano, sec_ano";
+    "GROUP BY id_ano ".
+    "ORDER BY nom_men, num_ano";
+    echo $sql;
     $res = $db->query($sql);
     $data = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
@@ -505,9 +516,10 @@
       $where_mat.= " AND id_mat IN ($mat_as) ";
     }
     $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, id_jor, dia_jor, nom_mat, modulo_hor, inicio_hor, ".
-    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano, id_ano, id_mat, id_hor ".
+    "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano, id_ano, id_mat, id_hor, nom_car, id_car ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".
+    "JOIN cargos ON id_car=id_car_person ".
     "LEFT JOIN jornadas ON id_per_jor=id_per ".
     "LEFT JOIN materias ON id_mat=id_mat_jor ".
     "LEFT JOIN horarios ON id_hor_jor=id_hor ".

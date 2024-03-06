@@ -17,6 +17,9 @@ $id = $_SESSION['id'];
 $car = $_SESSION['cargo'];
 extract($_GET);
 switch($s) {
+	case 'cargos':
+		$data = cargos($db,$id);
+		break;
 	case 'perfil':
 		$data = perfil($db,$id);
 		break;
