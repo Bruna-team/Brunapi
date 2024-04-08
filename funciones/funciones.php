@@ -267,8 +267,29 @@
     $res = $db->query($sql);
     $alum = array();
     while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
-      $alum[] = $r;
       $id = $r['id_estd'];
+      if (empty($id)) {
+        $sql = "SELECT id_estd, id_ano, id_rep, id_alum, ced_rep, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
+        "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano, ".
+        "SUM(CASE WHEN id_mo = '5' THEN 1 ELSE 0 END) AS entrada, SUM(CASE WHEN id_mo = '6' THEN 1 ELSE 0 END) AS salida  ".
+        "FROM estudiantes ".
+        "JOIN alumnos ON id_alum_estd=id_alum ".
+        "JOIN representantes ON id_rep_alum=id_rep ".
+        "JOIN semanero ON id_estd_sem=id_estd ".
+        "JOIN anos ON id_ano_estd=id_ano ".
+        "JOIN mencion ON id_men_ano=id_men ".
+        "LEFT JOIN observaciones ON id_estd_obs=id_estd ".
+        "LEFT JOIN motivos_obs ON id_mo_obs=id_mo ".
+        "WHERE id_ano_estd='$ano' AND act_alum='1' AND eli_estd='1' ".
+        "ORDER BY ced_alum ASC LIMIT 1";
+        $res = $db->query($sql);
+        while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+          $alum[] = $r;
+          $id = $r['id_estd'];
+        }
+      } else {
+        $alum[] = $r;
+      }
     }
 
     $sql = "SELECT id_obs, fec_obs, hor_obs, fec_fin_obs, nom_obs, tipo_mo, nota_obs, id_mo_obs FROM observaciones, motivos_obs ".
