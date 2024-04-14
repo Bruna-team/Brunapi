@@ -1087,7 +1087,7 @@
     $json = file_get_contents('php://input');
     $data = json_decode($json);
     $sqlm = '';
-    $r = false;
+    $r = true;
     $e="Faltan datos";
 
     if (!empty($data[0]->rol) && $data[0]->rol == '4') {
@@ -1104,9 +1104,11 @@
       }
     }
     if (!empty($data[0]->id) && !empty($data[0]->rol) && $r) {
-      $sql = "UPDATE `personal` SET id_car_person='".$data[0]->rol."' WHERE id_person='".$data[0]->id."'";
-      $res = $db->query($sql);
-      if ($res) {
+      $sql = "UPDATE `personal` SET id_car_person='".$data[0]->rol."' WHERE id_person='".$data[0]->id."';";
+      if ($data[0]->rol !== '4') {
+        $sql.="DELETE FROM `prof_guia` WHERE `id_person_guia`='".$data[0]->id."';";
+      }
+      if ($db->multi_query($sql)) {
         $r = true;
         $e = "Rol modificado";
       } else {
@@ -1121,7 +1123,7 @@
     );
   }
 
-  function rolEliminar($db,$id) {
+  function rolGuiaEliminar($db,$id) {
     extract($_POST);
     $r = false;
     $e="Faltan datos";

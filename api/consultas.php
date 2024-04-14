@@ -137,7 +137,7 @@ switch($s) {
 	case 'rolCambiar':
 		$data = rolCambiar($db,$id);
 		break;
-	case 'rolEliminar':
+	case 'rolGuiaEliminar':
 		$data = rolEliminar($db,$id);
 		break;
 	case "salir":
