@@ -65,7 +65,7 @@
     if ($car > 2) {
       $sql.= "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
       "LEFT JOIN materias ON id_mat_jor=id_mat ".
-      "LEFT JOIN personal ON id_person_mat=id_person ";
+      "LEFT JOIN personal ON id_per_jor=id_person ";
     }
     $sql.="WHERE eli_ano='1' ";
     if ($car > 2) {$sql.="AND id_person='$id' ";}
@@ -1075,6 +1075,44 @@
     } else {
       $r = false;
       $e = "Ocurrió un error modificando la jornada: ".$db->error;
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
+
+  function rolCambiar($db,$id) {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json);
+    $sqlm = '';
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($data[0]->rol) && $data[0]->rol == '4') {
+      foreach ($data as $key => $c) {
+        $sqlm.="INSERT INTO `prof_guia` (`id_person_guia`, `id_ano_guia`, `fec_cre_guia`) ".
+        "VALUES ('$c->id', '$c->ano', NOW());";
+      }
+      if ($db->multi_query($sqlm)) {
+        $r = true;
+        while ($db->next_result()) {;}
+      } else {
+        $r = false;
+        $e = "Ocurrió un error registrando las secciones del guía: ".$db->error;
+      }
+    }
+    if (!empty($data[0]->id) && !empty($data[0]->rol) && $r) {
+      $sql = "UPDATE `personal` SET id_car_person='".$data[0]->rol."' WHERE id_person='".$data[0]->id."'";
+      $res = $db->query($sql);
+      if ($res) {
+        $r = true;
+        $e = "Rol modificado";
+      } else {
+        $r = false;
+        $e = "Ocurrió un error modificando el rol: ".$db->error;
+      }
     }
 
     return array(
