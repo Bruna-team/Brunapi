@@ -567,6 +567,7 @@
     "LEFT JOIN anos ON id_ano_jor=id_ano ".
     "LEFT JOIN mencion ON id_men_ano=id_men ".
     "WHERE eli_person='1' ".
+    "AND id_car!='1' ".
     $where_nom.
     $where_mat.
     "ORDER BY nom_per, ape_per";
