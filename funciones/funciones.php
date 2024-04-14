@@ -1120,4 +1120,26 @@
       "e"=>$e
     );
   }
+
+  function rolEliminar($db,$id) {
+    extract($_POST);
+    $r = false;
+    $e="Faltan datos";
+
+    if (!empty($ano)) {
+      $sql = "DELETE FROM `prof_guia` WHERE `id_ano_guia`='$ano';";
+      if ($db->multi_query($sql)) {
+        $e = "Año desvinculado correctamente";
+        $r = true;
+      } else {
+        $r = false;
+        $e = "Ocurrió un error desvinculando el año: ".$db->error;
+      }
+    }
+
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
 ?>
