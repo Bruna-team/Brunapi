@@ -138,7 +138,7 @@ switch($s) {
 		$data = rolCambiar($db,$id);
 		break;
 	case 'rolGuiaEliminar':
-		$data = rolEliminar($db,$id);
+		$data = rolGuiaEliminar($db,$id);
 		break;
 	case "salir":
 		session_destroy();
