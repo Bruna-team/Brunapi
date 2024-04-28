@@ -65,7 +65,8 @@
     if ($car > 2) {
       $sql.= "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
       "LEFT JOIN materias ON id_mat_jor=id_mat ".
-      "LEFT JOIN personal ON id_per_jor=id_person ";
+      "LEFT JOIN prof_guia ON id_ano_guia=id_ano ".
+      "LEFT JOIN personal ON (id_per_jor=id_person OR id_person_guia=id_person) ";
     }
     $sql.="WHERE eli_ano='1' ";
     if ($car > 2) {$sql.="AND id_person='$id' ";}
@@ -110,9 +111,9 @@
     }
 
     if ($idRe && $pnom && $pape && $fec_nac && $idRe) {
-      $sql = "INSERT INTO `alumnos` (`pnom_alum`, `snom_alum`, `pape_alum`, `sape_alum`, `fec_nac_alum`, ".
+      $sql = "INSERT INTO `alumnos` (`pnom_alum`, `snom_alum`, `pape_alum`, `sape_alum`, `fec_nac_alum`, `sex_alum`, ".
       "`ced_alum`, `id_rep_alum`, `paren_alum`, `act_alum`, `obs_alum`, `fec_cre_alum`, `fec_mod_alum`, `eli_alum`) ".
-      "VALUES ('$pnom', '$snom', '$pape', '$sape', '$fec_nac', '$ced', '$idRe', '$paren', '1', '$obs', NOW(), NOW(), '1')";
+      "VALUES ('$pnom', '$snom', '$pape', '$sape', '$fec_nac', '$sex', '$ced', '$idRe', '$paren', '1', '$obs', NOW(), NOW(), '1')";
       $res = $db->query($sql);
 
       if ($res) {
@@ -251,7 +252,7 @@
     }
 
     $sql = "SELECT id_estd, id_ano, id_rep, id_alum, ced_rep, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
-    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano, ".
+    "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano, sex_alum, ".
     "SUM(CASE WHEN id_mo = '5' THEN 1 ELSE 0 END) AS entrada, SUM(CASE WHEN id_mo = '6' THEN 1 ELSE 0 END) AS salida  ".
     "FROM estudiantes ".
     "JOIN alumnos ON id_alum_estd=id_alum ".
