@@ -502,7 +502,17 @@
     }
     return $data;
   }
+  function totalEstudiantes($db, $id) {
+    $sql = "SELECT COUNT(*) AS total_estudiantes FROM alumnos";
+    $res = $db->query($sql);
 
+    if ($res->num_rows > 0) {
+      $row = $res->fetch_assoc();
+      return $row["total_estudiantes"];
+    } else {
+      return "No se encontraron estudiantes.";
+    }
+  }
   function burcarEstudiante($db,$id) {
     extract($_POST);
     $day = date("l");
