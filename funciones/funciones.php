@@ -271,7 +271,7 @@
       $id = $r['id_estd'];
       if (empty($id)) {
         $sql = "SELECT id_estd, id_ano, id_rep, id_alum, ced_rep, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, fec_nac_alum, paren_alum, nom_rep, ".
-        "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano, ".
+        "ape_rep, ced_rep, tel_rep, tel_re_rep, dir_rep, obs_alum, inicio_sem, cierre_sem, nom_men, nom_ano, abre_men, num_ano, sec_ano, sex_alum, ".
         "SUM(CASE WHEN id_mo = '5' THEN 1 ELSE 0 END) AS entrada, SUM(CASE WHEN id_mo = '6' THEN 1 ELSE 0 END) AS salida  ".
         "FROM estudiantes ".
         "JOIN alumnos ON id_alum_estd=id_alum ".
