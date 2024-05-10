@@ -56,6 +56,9 @@ switch($s) {
 	case 'menciones':
 		$data = menciones($db,$id);
 		break;
+	case 'totalEstudiantes':
+		$data = totalEstudiantes($db,$id);
+		break;
 	case 'burcarEstudiante':
 		$data = burcarEstudiante($db,$id);
 		break;

@@ -146,7 +146,7 @@
     $r = true;
     $e="Faltan datos";
 
-    $sql = "SELECT id_rep, tel_rep, tel_re_rep, dir_rep FROM representantes WHERE ced_rep='$cedRe'";
+    $sql = "SELECT id_rep, nom_rep, ape_rep, tel_rep, tel_re_rep, dir_rep FROM representantes WHERE ced_rep='$cedRe'";
     $res = $db->query($sql);
     if ($res->num_rows == 0) {
       if($nomRe && $apeRe && $cedRe && $telRe && $dirRe) {
@@ -163,12 +163,20 @@
       }
     } else {
       $row = $res->fetch_assoc();
-      if ($row['tel_rep'] != $telRe || $row['tel_re_rep'] != $sTelRe || $row['dir_rep'] != $dirRe) {
+      if (
+          $row['tel_rep'] != $telRe
+          || $row['tel_re_rep'] != $sTelRe
+          || $row['dir_rep'] != $dirRe
+          || $row['nom_rep'] != $nomRe
+          || $row['ape_rep'] != $apeRe
+        ) {
         $sql = "UPDATE `representantes` SET ".
         "`fec_mod_rep`=NOW() ".
-        ($telRe ? ",`tel_alum`='".$telRe."' " : "").
-        ($sTelRe ? ",`tel_re_alum`='".$sTelRe."' " : "").
-        ($dirRe ? ",`dir_alum`='".$dirRe."' " : "").
+        ($nomRe ? ",`nom_rep`='".$nomRe."' " : "").
+        ($apeRe ? ",`ape_rep`='".$apeRe."' " : "").
+        ($telRe ? ",`tel_rep`='".$telRe."' " : "").
+        ($sTelRe ? ",`tel_re_rep`='".$sTelRe."' " : "").
+        ($dirRe ? ",`dir_rep`='".$dirRe."' " : "").
         "WHERE id_rep = '".$idRe."'";
         $res = $db->query($sql);
         if ($res) {
@@ -192,6 +200,7 @@
     ($paren ? ",`paren_alum`='".$paren."' " : "").
     ($idRe ? ",`id_rep_alum`='".$idRe."' " : "").
     ($obs ? ",`obs_alum`='".$obs."' " : "").
+    ($sex_alum ? ",`sex_alum`='".$sex_alum."' " : "").
     "WHERE id_alum = '".$id."'";
     $res = $db->query($sql);
     if ($res) {
@@ -493,7 +502,17 @@
     }
     return $data;
   }
+  function totalEstudiantes($db, $id) {
+    $sql = "SELECT COUNT(*) AS total_estudiantes FROM alumnos";
+    $res = $db->query($sql);
 
+    if ($res->num_rows > 0) {
+      $row = $res->fetch_assoc();
+      return $row["total_estudiantes"];
+    } else {
+      return "No se encontraron estudiantes.";
+    }
+  }
   function burcarEstudiante($db,$id) {
     extract($_POST);
     $day = date("l");
