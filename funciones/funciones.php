@@ -534,7 +534,7 @@
         $d = "Viernes";
       break;
     }
-    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, num_ano, sec_ano, ced_alum, modulo_hor, ".
+    $sql = "SELECT id_estd, CONCAT(pnom_alum, ' ',pape_alum) as nombre, nom_men, nom_ano, sec_ano, ced_alum, modulo_hor, ".
     "CONCAT(nom_rep, ' ',ape_rep) as representantes, nom_mat, CONCAT(nom_per, ' ',ape_per) as profesor ".
     "FROM estudiantes ".
     "JOIN alumnos ON id_alum_estd=id_alum ".
