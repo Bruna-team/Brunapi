@@ -10,7 +10,7 @@
   }
 
   function perfil($db, $id) {
-    $sql = "SELECT id_person, nom_per, ape_per, ced_per, ema_per, dir_per, tel_per, nom_car ".
+    $sql = "SELECT id_person, nom_per, ape_per, ced_per, ema_per, dir_per, tel_per, nom_car, estatus ".
     "FROM personas, personal, cargos WHERE id_per_person=id_per AND id_car_person=id_car AND ".
     "id_person='$id'";
     $res = $db->query($sql);
@@ -56,27 +56,43 @@
 
   function secciones($db,$id,$car) {
     $date_now = date('Y-m-d');
-    $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano, COUNT(id_estd) as num_est, pnom_alum, pape_alum ".
-    "FROM anos ".
-    "JOIN mencion ON id_men_ano=id_men ".
-    "LEFT JOIN estudiantes ON id_ano_estd=id_ano ".
-    "LEFT JOIN alumnos ON id_alum_estd=id_alum  ".
-    "LEFT JOIN semanero ON (id_estd_sem=id_estd AND '$date_now' BETWEEN inicio_sem AND cierre_sem) ";
-    if ($car > 2) {
-      $sql.= "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
-      "LEFT JOIN materias ON id_mat_jor=id_mat ".
-      "LEFT JOIN prof_guia ON id_ano_guia=id_ano ".
-      "LEFT JOIN personal ON (id_per_jor=id_person OR id_person_guia=id_person) ";
-    }
-    $sql.="WHERE eli_ano='1' ";
-    if ($car > 2) {$sql.="AND id_person='$id' ";}
-    $sql.="GROUP BY id_ano";
+    $sql = "SELECT id_person FROM personal WHERE id_person = '$id' AND estatus = 1";
     $res = $db->query($sql);
-    $data = array();
-    while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
-      $data[] = $r;
+    if ($res->num_rows == 0) {
+      $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano, COUNT(id_estd) as num_est, pnom_alum, pape_alum ".
+      "FROM anos ".
+      "JOIN mencion ON id_men_ano=id_men ".
+      "LEFT JOIN estudiantes ON id_ano_estd=id_ano ".
+      "LEFT JOIN alumnos ON id_alum_estd=id_alum  ".
+      "LEFT JOIN semanero ON (id_estd_sem=id_estd AND '$date_now' BETWEEN inicio_sem AND cierre_sem) ";
+      if ($car > 2) {
+        $sql.= "LEFT JOIN jornadas ON id_ano_jor=id_ano ".
+        "LEFT JOIN materias ON id_mat_jor=id_mat ".
+        "LEFT JOIN prof_guia ON id_ano_guia=id_ano ".
+        "LEFT JOIN personal ON (id_per_jor=id_person OR id_person_guia=id_person) ";
+      }
+      $sql.="WHERE eli_ano='1' ";
+      if ($car > 2) {$sql.="AND id_person='$id' ";}
+      $sql.="GROUP BY id_ano";
+      $res = $db->query($sql);
+      if ($res->num_rows) {
+        $data = array();
+        while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+          $data[] = $r;
+        }
+        return $data;
+      } else {
+        return array(
+          "r"=>true,
+          "e"=>"Parece que aun no tienes una sección asignada"
+        );
+      }
+    } else {
+      return array(
+        "r"=>true,
+        "e"=>"Parece que estas bloqueado como profesor"
+      );
     }
-    return $data;
   }
 
   function buscarRepresentante($db,$id) {
@@ -557,7 +573,70 @@
     }
     return $data;
   }
+  function estatusMaestro($db,$id) {
+    $sql_car = "SELECT id_person, id_car_person,
+      CASE
+        WHEN id_car_person = 1 THEN 'ROOT'
+        WHEN id_car_person = 2 THEN 'coordinador'
+        WHEN id_car_person = 3 THEN 'profesor'
+        ELSE 'guia'
+      END AS respuesta
+      FROM personal
+      WHERE id_person='$id'";
+    $res_car = $db->query($sql_car);
 
+    $sql_est = "SELECT id_person, estatus,
+      CASE
+        WHEN estatus = 1 THEN 'bloqueado'
+        ELSE 'activo'
+      END AS respuesta
+      FROM personal
+      WHERE id_person='$id'";
+    $res_est = $db->query($sql_est);
+    if ($res_car->num_rows > 0) {
+      while ($row_car = $res_car->fetch_assoc()) {
+        if (
+          ($_POST['vista'] == 'maestros' || $_POST['vista'] == 'configuracion' || $_POST['vista'] == 'pases')
+          && $row_car['respuesta'] !== 'coordinador') {
+          return array(
+            "r"=>false,
+            "l"=>'/acceso-denegado',
+            "e"=>"noAccess",
+          );
+        }
+        else if ($res_est->num_rows > 0) {
+          while ($row_est = $res_est->fetch_assoc()) {
+            if($row_est['respuesta'] !== 'activo') {
+              return array(
+                "r"=>false,
+                "l"=>'/acceso-denegado',
+                "e"=>"locked",
+              );
+            }
+          }
+        }
+      }
+    }
+    return array(
+      "r"=>true,
+    );
+  }
+  function modificarEstatusMaestro($db,$id) {
+    extract($_POST);
+    $sql = "UPDATE personal SET estatus = '$est' WHERE id_person='$id_person'";
+    $res = $db->query($sql);
+    if($res) {
+      $r = true;
+      $e = "Estatus del maestro actualizado.";
+    } else {
+      $r = false;
+      $e = "Error actualizando el estatus del maestro.".$db->error;
+    }
+    return array(
+      "r"=>$r,
+      "e"=>$e
+    );
+  }
   function maestros($db,$id) {
     extract($_POST);
     $where_nom = '';
@@ -575,7 +654,7 @@
       }
       $where_mat.= " AND id_mat IN ($mat_as) ";
     }
-    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, id_jor, dia_jor, nom_mat, modulo_hor, inicio_hor, ".
+    $sql = "SELECT id_person, CONCAT(nom_per, ' ',ape_per) as profesor, id_jor, dia_jor, nom_mat, modulo_hor, inicio_hor, estatus,".
     "fin_hor, num_ano, nom_men, sec_ano, nom_men, nom_ano, sec_ano, id_ano, id_mat, id_hor, nom_car, id_car, id_ano_guia ".
     "FROM personal ".
     "JOIN personas ON id_per_person=id_per ".

@@ -68,6 +68,12 @@ switch($s) {
 	case 'observaciones':
 		$data = observaciones($db,$id);
 		break;
+	case 'estatusMaestro':
+		$data = estatusMaestro($db,$id);
+		break;
+	case 'ModificarEstatusMaestro':
+		$data = ModificarEstatusMaestro($db,$id);
+		break;
 	case 'maestros':
 		$data = maestros($db,$id);
 		break;
