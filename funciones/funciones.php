@@ -8,7 +8,6 @@
     }
     return $data;
   }
-
   function perfil($db, $id) {
     $sql = "SELECT id_person, nom_per, ape_per, ced_per, ema_per, dir_per, tel_per, nom_car, estatus ".
     "FROM personas, personal, cargos WHERE id_per_person=id_per AND id_car_person=id_car AND ".
@@ -20,7 +19,6 @@
     }
     return $data;
   }
-
   function editarPerfil($db,$id) {
     extract($_POST);
     $r = true;
@@ -53,7 +51,6 @@
       "e"=>$e
     );
   }
-
   function secciones($db,$id,$car) {
     $date_now = date('Y-m-d');
     $sql = "SELECT id_person FROM personal WHERE id_person = '$id' AND estatus = 1";
@@ -94,7 +91,6 @@
       );
     }
   }
-
   function buscarRepresentante($db,$id) {
     extract($_POST);
     $sql = "SELECT * FROM representantes WHERE ced_rep='$ced'";
@@ -105,7 +101,6 @@
     }
     return $data;
   }
-
   function agregarAlum($db,$id) {
     extract($_POST);
     $r = false;
@@ -156,7 +151,6 @@
       "e"=>$e
     );
   }
-
   function editarAlum($db,$id) {
     extract($_POST);
     $r = true;
@@ -232,7 +226,6 @@
       "e"=>$e
     );
   }
-
   function cuentaSemanero ($db,$id,$ano) {
     $r = false;
     $e = 'Ocurrió un error';
@@ -264,7 +257,6 @@
       "e"=>$e
     );
   }
-
   function sesion($db,$id) {
     extract($_POST);
     $date_now = date('Y-m-d');
@@ -341,7 +333,6 @@
       "estd"=>$estd
     );
   }
-
   function motivos($db,$id) {
     $sql = "SELECT * FROM motivos_obs";
     $res = $db->query($sql);
@@ -351,7 +342,6 @@
     }
     return $data;
   }
-
   function crearObservacion($db,$id) {
     extract($_POST);
     $r = false;
@@ -375,7 +365,6 @@
       "e"=>$e
     );
   }
-
   function editarObservacion($db,$id) {
     extract($_POST);
     $r = true;
@@ -405,7 +394,6 @@
       "e"=>$e
     );
   }
-
   function eliminarObservacion($db,$id) {
     extract($_POST);
     $r = false;
@@ -428,7 +416,6 @@
       "e"=>$e
     );
   }
-
   function menciones($db,$id) {
     $sql = "SELECT id_ano, id_men, nom_men, nom_ano, num_ano, sec_ano ".
     "FROM anos ".
@@ -443,7 +430,6 @@
     }
     return $data;
   }
-
   function observaciones($db,$id) {
     extract($_POST);
     if (empty($fecha)) {
@@ -479,7 +465,6 @@
     }
     return $data;
   }
-
   function inasistencias($db,$id) {
     extract($_POST);
     if (empty($fecha)) {
@@ -604,6 +589,22 @@
             "e"=>"noAccess",
           );
         }
+        if ($_POST['vista'] == 'seccion' && $row_car['respuesta'] !== 'coordinador') {
+          $sec = $_POST['sec'];
+          $sql = "SELECT id_ano_jor, id_per_jor FROM jornadas WHERE id_ano_jor='$sec' AND id_per_jor='$id'";
+          $res = $db->query($sql);
+          if ($res->num_rows > 0) {
+            return array(
+              "r"=>true,
+            );
+          } else {
+            return array(
+              "r"=>false,
+              "l"=>'/acceso-denegado',
+              "e"=>"sectionNoAssigned",
+            );
+          }
+        }
         else if ($res_est->num_rows > 0) {
           while ($row_est = $res_est->fetch_assoc()) {
             if($row_est['respuesta'] !== 'activo') {
@@ -677,7 +678,6 @@
     }
     return $data;
   }
-
   function estudiantes($db, $id) {
     extract($_POST);
     $sql = "SELECT id_estd, pnom_alum, snom_alum, pape_alum, sape_alum, ced_alum, id_ano_estd FROM estudiantes, alumnos ".
@@ -693,7 +693,6 @@
     }
     return $estd;
   }
-
   function registrarInasistencias($db,$id) {
     extract($_POST);
     $r = false;
@@ -719,7 +718,6 @@
       "e"=>$e
     );
   }
-
   function registrarPases($db,$id) {
     extract($_POST);
     $r = false;
@@ -742,7 +740,6 @@
       "e"=>$e
     );
   }
-
   function informacion($db,$id) {
     $sql= "SELECT * from informacion ORDER BY id_inf DESC LIMIT 1";
     $res = $db->query($sql);
@@ -752,7 +749,6 @@
     }
     return $inf;
   }
-
   function informacionGuardar($db,$id) {
     extract($_POST);
     $r = false;
@@ -773,7 +769,6 @@
       "e"=>$e
     );
   }
-
   function horarios($db,$id) {
     $sql= "SELECT * from horarios WHERE eli_hor='1' ORDER BY modulo_hor ASC";
     $res = $db->query($sql);
@@ -783,7 +778,6 @@
     }
     return $hor;
   }
-
   function horarioCrear($db,$id) {
     extract($_POST);
     $r = false;
@@ -804,7 +798,6 @@
       "e"=>$e
     );
   }
-
   function editarHorario($db,$id) {
     extract($_POST);
     $r = true;
@@ -831,7 +824,6 @@
       "e"=>$e
     );
   }
-
   function horarioEliminar($db,$id) {
     extract($_POST);
     $r = false;
@@ -854,7 +846,6 @@
       "e"=>$e
     );
   }
-
   function materias($db,$id) {
     $sql= "SELECT * from materias WHERE eli_mat='1' ORDER BY nom_mat ASC";
     $res = $db->query($sql);
@@ -864,7 +855,6 @@
     }
     return $mat;
   }
-
   function materiasCrear($db,$id) {
     extract($_POST);
     $r = false;
@@ -887,7 +877,6 @@
       "e"=>$e
     );
   }
-
   function materiaEditar($db,$id) {
     extract($_POST);
     $r = true;
@@ -912,7 +901,6 @@
       "e"=>$e
     );
   }
-
   function materiaEliminar($db,$id) {
     extract($_POST);
     $r = false;
@@ -935,7 +923,6 @@
       "e"=>$e
     );
   }
-
   function mencionCrear($db,$id) {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
@@ -958,7 +945,6 @@
     }
     return anoCrear($db, $id, $r, $e, $id_men);
   }
-
   function anoCrear($db,$id,$r,$e,$id_men) {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
@@ -986,7 +972,6 @@
       "e"=>$e
     );
   }
-
   function mencionEditar($db,$id) {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
@@ -1007,7 +992,6 @@
     }
     return anoEditar($db, $id, $r, $e);
   }
-
   function anoEditar($db,$id,$r,$e) {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
@@ -1037,7 +1021,6 @@
       "e"=>$e
     );
   }
-
   function seccionEliminar($db,$id) {
     extract($_POST);
     $r = false;
@@ -1060,7 +1043,6 @@
       "e"=>$e
     );
   }
-
   function anoEliminar($db,$id) {
     extract($_POST);
     $r = false;
@@ -1083,7 +1065,6 @@
       "e"=>$e
     );
   }
-
   function mencionEliminar($db,$id) {
     extract($_POST);
     $r = false;
@@ -1106,7 +1087,6 @@
       "e"=>$e
     );
   }
-
   function jornadaCrear($db,$id) {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
@@ -1131,7 +1111,6 @@
       "e"=>$e
     );
   }
-
   function jornadaEliminar($db,$id) {
     extract($_POST);
     $r = false;
@@ -1153,7 +1132,6 @@
       "e"=>$e
     );
   }
-
   function jornadaEditar($db,$id) {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
@@ -1182,7 +1160,6 @@
       "e"=>$e
     );
   }
-
   function rolCambiar($db,$id) {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
@@ -1222,7 +1199,6 @@
       "e"=>$e
     );
   }
-
   function rolGuiaEliminar($db,$id) {
     extract($_POST);
     $r = false;
