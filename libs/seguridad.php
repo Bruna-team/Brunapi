@@ -99,7 +99,7 @@ function evaluarLog() {
       exit;
     } else if (isset($_COOKIE['sid']) && isset($_COOKIE['nid'])) {
       require_once('../libs/db_fc.php');
-			$sql = "SELECT id_person, nom_per, ape_per, nom_car FROM hashes, peronal, cagos, personas WHERE ".
+			$sql = "SELECT id_person, nom_per, ape_per, nom_car FROM hashes, personal, cargos, personas WHERE ".
 			"has_hash='".$_COOKIE['sid']."' AND ".
 			"id_person=id_person_hash AND ".
 			"id_per_person=id_per AND ".
