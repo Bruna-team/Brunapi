@@ -228,27 +228,31 @@
   }
   function cuentaSemanero ($db,$id,$ano) {
     $r = false;
-    $e = 'Ocurrió un error';
+    $e = 'Ingrese la información del periodo para realizar el cálculo de semaneros';
 
-    $sql = "SELECT id_estd FROM estudiantes, alumnos WHERE id_alum_estd=id_alum AND id_ano_estd='$ano' AND eli_estd='1' ORDER BY ced_alum ASC";
+    $sql= "SELECT * from informacion ORDER BY id_inf DESC LIMIT 1";
     $res = $db->query($sql);
-    $date_now = date('Y-m-d');
-    $sqlm = '';
-    if ($db->query($sql)) {
-      while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
-        $sqlm.= "DELETE FROM semanero WHERE id_estd_sem='".$r['id_estd']."';";
-        $date_future = strtotime('+7 day', strtotime($date_now));
-        $date_future = date('Y-m-d', $date_future);
-        $sqlm.= "INSERT INTO `semanero` (`id_estd_sem`, `inicio_sem`, `cierre_sem`, `eli_sem`) VALUES ('".$r['id_estd']."', '$date_now', '$date_future', '1');";
-        $date_now = strtotime('+7 day', strtotime($date_now));
-        $date_now = date('Y-m-d', $date_now);
-      }
-      if($db->multi_query($sqlm)) {
-        $r = true;
-        $e = "Semaneros guardados.";
-      } else {
-        $r = false;
-        $e = "Error guardando los semaneros.".$db->error;
+    if ($res->num_rows != 0) {
+      $sql = "SELECT id_estd FROM estudiantes, alumnos WHERE id_alum_estd=id_alum AND id_ano_estd='$ano' AND eli_estd='1' ORDER BY ced_alum ASC";
+      $res = $db->query($sql);
+      $date_now = date('Y-m-d');
+      $sqlm = '';
+      if ($db->query($sql)) {
+        while ($r = $res->fetch_array(MYSQLI_ASSOC)) {
+          $sqlm.= "DELETE FROM semanero WHERE id_estd_sem='".$r['id_estd']."';";
+          $date_future = strtotime('+7 day', strtotime($date_now));
+          $date_future = date('Y-m-d', $date_future);
+          $sqlm.= "INSERT INTO `semanero` (`id_estd_sem`, `inicio_sem`, `cierre_sem`, `eli_sem`) VALUES ('".$r['id_estd']."', '$date_now', '$date_future', '1');";
+          $date_now = strtotime('+7 day', strtotime($date_now));
+          $date_now = date('Y-m-d', $date_now);
+        }
+        if($db->multi_query($sqlm)) {
+          $r = true;
+          $e = "Semaneros guardados.";
+        } else {
+          $r = false;
+          $e = "Error guardando los semaneros.".$db->error;
+        }
       }
     }
 
@@ -559,13 +563,7 @@
     return $data;
   }
   function estatusMaestro($db,$id) {
-    $sql_car = "SELECT id_person, id_car_person,
-      CASE
-        WHEN id_car_person = 1 THEN 'ROOT'
-        WHEN id_car_person = 2 THEN 'coordinador'
-        WHEN id_car_person = 3 THEN 'profesor'
-        ELSE 'guia'
-      END AS respuesta
+    $sql_car = "SELECT id_person, id_car_person,nom_car AS respuesta
       FROM personal
       WHERE id_person='$id'";
     $res_car = $db->query($sql_car);
@@ -582,14 +580,14 @@
       while ($row_car = $res_car->fetch_assoc()) {
         if (
           ($_POST['vista'] == 'maestros' || $_POST['vista'] == 'configuracion' || $_POST['vista'] == 'pases')
-          && $row_car['respuesta'] !== 'coordinador') {
+          && ($row_car['respuesta'] !== 'Coordinador' || $row_car['respuesta'] !== 'Root')) {
           return array(
             "r"=>false,
             "l"=>'/acceso-denegado',
             "e"=>"noAccess",
           );
         }
-        if ($_POST['vista'] == 'seccion' && $row_car['respuesta'] !== 'coordinador') {
+        if ($_POST['vista'] == 'seccion' && ($row_car['respuesta'] !== 'Coordinador' || $row_car['respuesta'] !== 'Root')) {
           $sec = $_POST['sec'];
           $sql = "SELECT id_ano_jor, id_per_jor FROM jornadas WHERE id_ano_jor='$sec' AND id_per_jor='$id'";
           $res = $db->query($sql);
